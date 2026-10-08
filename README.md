@@ -89,6 +89,40 @@ and unlock normally on the new lock screen.
 
 For idle locking, have swayidle/hypridle call `qs -p ~/source/shell ipc call lock lock`.
 
+## Nix flake
+
+```nix
+inputs.shell.url = "github:zaroc-dev/shell";
+```
+
+| Output | What |
+| --- | --- |
+| `packages.<system>.shell` (default) | `shell` = `qs -p <config>` with cliphist, wl-clipboard, brightnessctl, xdg-utils on PATH. `shell ipc call …` talks to it. `.override { configDir = "/path"; }` runs a checkout instead of the store copy |
+| `packages.<system>.sddm-theme` | `.override { background = ./wall.jpg; settings = { accent = "#…"; }; }` |
+| `packages.<system>.plymouth-theme` | `.override { accent = …; base = …; surface = …; text = …; }` |
+| `homeManagerModules.default` | `programs.shell = { enable; configDir; systemd.enable; gtk.enable; }` |
+| `nixosModules.default` | `programs.shell = { sddm = { enable; background; }; plymouth.enable; palette = { … }; }` |
+
+For hot reload, point `configDir` at a checkout (e.g. an out-of-store
+symlink): the shell then runs the live QML, and settings are shared with the
+packaged build because the shell id is pinned (`//@ pragma ShellId shell`).
+
+```nix
+# home-manager
+imports = [ inputs.shell.homeManagerModules.default ];
+programs.shell = {
+  enable = true;
+  configDir = "${config.home.homeDirectory}/source/shell";
+};
+
+# nixos
+imports = [ inputs.shell.nixosModules.default ];
+programs.shell = {
+  sddm = { enable = true; background = ./wallpapers/raiden.shogun.jpg; };
+  plymouth.enable = true;
+};
+```
+
 ## Running
 
 Needs Quickshell ≥ 0.3 (`pkgs.quickshell`), niri, NetworkManager, PipeWire, UPower,
