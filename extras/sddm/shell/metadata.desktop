@@ -1,0 +1,14 @@
+[SddmGreeterTheme]
+Name=shell
+Description=Login screen matching the Quickshell desktop shell (lock screen design)
+Author=zaroc
+Type=sddm-theme
+Version=1.0
+Website=
+Screenshot=
+MainScript=Main.qml
+ConfigFile=theme.conf
+TranslationsDirectory=translations
+Theme-Id=shell
+Theme-API=2.0
+QtVersion=6
