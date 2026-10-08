@@ -34,7 +34,7 @@ Variants {
         implicitHeight: Math.max(1, column.implicitHeight)
         color: "transparent"
         WlrLayershell.layer: WlrLayer.Overlay
-        WlrLayershell.namespace: "quickshell-notifications"
+        WlrLayershell.namespace: "yuki-notifications"
         // Each toast card adds its own rounded rect to this region.
         BackgroundEffect.blurRegion: Theme.blur ? blur : null
 

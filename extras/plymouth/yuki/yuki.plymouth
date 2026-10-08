@@ -1,0 +1,8 @@
+[Plymouth Theme]
+Name=yuki
+Description=Boot splash matching the yuki desktop shell
+ModuleName=script
+
+[script]
+ImageDir=@THEMEDIR@
+ScriptFile=@THEMEDIR@/yuki.script

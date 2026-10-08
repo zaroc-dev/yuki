@@ -20,7 +20,7 @@ Page {
 
         StyledText {
             Layout.alignment: Qt.AlignHCenter
-            text: "shell"
+            text: "yuki"
             font.pixelSize: 22
             font.weight: Font.DemiBold
         }

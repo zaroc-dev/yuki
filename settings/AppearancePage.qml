@@ -254,7 +254,7 @@ Page {
 
     Section {
         title: "Colors in other apps"
-        subtitle: "Written to ~/.local/state/shell/theme/ whenever the palette changes. Your niri and kitty configs need to include them (see HANDOFF.md)."
+        subtitle: "Written to ~/.local/state/yuki/theme/ whenever the palette changes. Your niri and kitty configs need to include them (see HANDOFF.md)."
 
         Repeater {
             model: [

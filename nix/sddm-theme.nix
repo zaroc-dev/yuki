@@ -9,14 +9,14 @@
 }:
 
 stdenvNoCC.mkDerivation {
-  pname = "sddm-theme-shell";
+  pname = "sddm-theme-yuki";
   version = "0.1.0";
-  src = ../extras/sddm/shell;
+  src = ../extras/sddm/yuki;
 
   installPhase = ''
     runHook preInstall
 
-    dir=$out/share/sddm/themes/shell
+    dir=$out/share/sddm/themes/yuki
     mkdir -p $dir
     cp -r . $dir
     ${lib.optionalString (background != null) ''
@@ -34,7 +34,7 @@ stdenvNoCC.mkDerivation {
 
   meta = {
     license = lib.licenses.asl20;
-    description = "SDDM theme matching the shell's lock screen";
+    description = "SDDM theme matching yuki's lock screen";
     platforms = lib.platforms.linux;
   };
 }

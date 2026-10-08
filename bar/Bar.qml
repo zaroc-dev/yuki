@@ -18,7 +18,7 @@ PanelWindow {
     }
     implicitHeight: Theme.barHeight + Theme.gap
     color: "transparent"
-    WlrLayershell.namespace: "quickshell-bar"
+    WlrLayershell.namespace: "yuki-bar"
 
     // Frosted glass behind each pill.
     BackgroundEffect.blurRegion: Theme.blur ? blurRegion : null

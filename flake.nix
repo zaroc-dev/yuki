@@ -1,5 +1,5 @@
 {
-  description = "Quickshell desktop shell for niri: bar, launcher, lock screen, Material You theming";
+  description = "yuki: a Quickshell desktop shell for niri (bar, launcher, lock screen, Material You theming)";
 
   inputs.nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
 
@@ -14,10 +14,10 @@
     in
     {
       packages = forAllSystems (pkgs: rec {
-        shell = pkgs.callPackage ./nix/package.nix { };
+        yuki = pkgs.callPackage ./nix/package.nix { };
         sddm-theme = pkgs.callPackage ./nix/sddm-theme.nix { };
         plymouth-theme = pkgs.callPackage ./nix/plymouth-theme.nix { };
-        default = shell;
+        default = yuki;
       });
 
       homeManagerModules.default = import ./nix/home-module.nix self;

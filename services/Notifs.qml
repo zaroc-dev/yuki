@@ -20,7 +20,7 @@ Singleton {
         const n = {
             id: id,
             internal: true,
-            appName: opts.appName ?? "Shell",
+            appName: opts.appName ?? "yuki",
             appIcon: opts.appIcon ?? "",
             desktopEntry: "",
             summary: opts.summary ?? "",

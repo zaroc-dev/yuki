@@ -34,7 +34,7 @@ let
   };
 in
 stdenvNoCC.mkDerivation {
-  pname = "shell";
+  pname = "yuki";
   version = "0.1.0";
   inherit src;
 
@@ -43,12 +43,12 @@ stdenvNoCC.mkDerivation {
   installPhase = ''
     runHook preInstall
 
-    mkdir -p $out/share/shell $out/bin
-    cp -r . $out/share/shell
+    mkdir -p $out/share/yuki $out/bin
+    cp -r . $out/share/yuki
 
-    # `shell` starts it; `shell ipc call <target> <fn>` talks to it.
-    makeWrapper ${lib.getExe' quickshell "qs"} $out/bin/shell \
-      --add-flags "-p ${if configDir != null then configDir else "$out/share/shell"}" \
+    # `yuki` starts it; `yuki ipc call <target> <fn>` talks to it.
+    makeWrapper ${lib.getExe' quickshell "qs"} $out/bin/yuki \
+      --add-flags "-p ${if configDir != null then configDir else "$out/share/yuki"}" \
       --prefix PATH : ${
         lib.makeBinPath [
           bash
@@ -66,8 +66,8 @@ stdenvNoCC.mkDerivation {
 
   meta = {
     license = lib.licenses.asl20;
-    description = "Quickshell desktop shell for niri";
+    description = "yuki: Quickshell desktop shell for niri";
     platforms = lib.platforms.linux;
-    mainProgram = "shell";
+    mainProgram = "yuki";
   };
 }

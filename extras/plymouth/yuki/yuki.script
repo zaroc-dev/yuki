@@ -1,4 +1,4 @@
-# Boot splash matching the shell: accent NixOS snowflake inside a rotating
+# Boot splash matching yuki: accent NixOS snowflake inside a rotating
 # arc, a lock-screen style password pill for disk unlock, fade out on quit.
 
 Window.SetBackgroundTopColor(0.071, 0.075, 0.094);    # base #121318

@@ -6,7 +6,7 @@ import Quickshell.Io
 import qs.config
 
 // Writes the current palette into config snippets for other programs and
-// asks them to reload. Files live in ~/.local/state/shell/theme/:
+// asks them to reload. Files live in ~/.local/state/yuki/theme/:
 //   niri.kdl   include it last in niri's config (also sets the overview backdrop)
 //   kitty.conf include it from kitty.conf
 //   gtk3.css / gtk4.css   imported from ~/.config/gtk-{3,4}.0/gtk.css
@@ -14,7 +14,7 @@ import qs.config
 Singleton {
     id: root
 
-    readonly property string dir: (Quickshell.env("XDG_STATE_HOME") || Quickshell.env("HOME") + "/.local/state") + "/shell/theme"
+    readonly property string dir: (Quickshell.env("XDG_STATE_HOME") || Quickshell.env("HOME") + "/.local/state") + "/yuki/theme"
     property bool ready: false
 
     readonly property var m: Theme.m3
@@ -72,7 +72,7 @@ overview {
 
 // The shell's blurred wallpaper behind workspaces in the overview.
 layer-rule {
-    match namespace="^quickshell-backdrop$"
+    match namespace="^yuki-backdrop$"
     place-within-backdrop true
 }
 `;

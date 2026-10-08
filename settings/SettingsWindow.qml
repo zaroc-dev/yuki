@@ -36,7 +36,7 @@ LazyLoader {
         exclusionMode: ExclusionMode.Ignore
         WlrLayershell.layer: WlrLayer.Overlay
         WlrLayershell.keyboardFocus: WlrKeyboardFocus.Exclusive
-        WlrLayershell.namespace: "quickshell-settings"
+        WlrLayershell.namespace: "yuki-settings"
         BackgroundEffect.blurRegion: Region {
             item: Theme.blur ? panel : null
             radius: panel.radius

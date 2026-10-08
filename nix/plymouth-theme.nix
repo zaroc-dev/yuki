@@ -11,7 +11,7 @@
 }:
 
 stdenvNoCC.mkDerivation {
-  pname = "plymouth-theme-shell";
+  pname = "plymouth-theme-yuki";
   version = "0.1.0";
   src = ../extras/plymouth;
 
@@ -23,24 +23,24 @@ stdenvNoCC.mkDerivation {
   installPhase = ''
     runHook preInstall
 
-    dir=$out/share/plymouth/themes/shell
+    dir=$out/share/plymouth/themes/yuki
     mkdir -p $dir
     font=$(find ${nerd-fonts.jetbrains-mono}/share/fonts -name 'JetBrainsMonoNerdFont-Regular.ttf' | head -n1)
     bash ./generate.sh $dir "${accent}" "${base}" "${surface}" "${text}" "$font"
-    cp shell/shell.script $dir/
-    substitute shell/shell.plymouth $dir/shell.plymouth --replace-fail "@THEMEDIR@" "$dir"
+    cp yuki/yuki.script $dir/
+    substitute yuki/yuki.plymouth $dir/yuki.plymouth --replace-fail "@THEMEDIR@" "$dir"
 
     # The script's background color is the theme base.
     sed -i 's|^Window.SetBackgroundTopColor.*|Window.SetBackgroundTopColor(${lib.concatMapStringsSep ", " (x: x) (
       map (i: toString ((lib.fromHexString (builtins.substring i 2 base)) / 255.0)) [ 1 3 5 ]
-    )});|' $dir/shell.script
+    )});|' $dir/yuki.script
 
     runHook postInstall
   '';
 
   meta = {
     license = lib.licenses.asl20;
-    description = "Plymouth boot splash matching the shell";
+    description = "Plymouth boot splash matching yuki";
     platforms = lib.platforms.linux;
   };
 }

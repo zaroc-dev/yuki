@@ -1,8 +1,0 @@
-[Plymouth Theme]
-Name=shell
-Description=Boot splash matching the Quickshell desktop shell
-ModuleName=script
-
-[script]
-ImageDir=@THEMEDIR@
-ScriptFile=@THEMEDIR@/shell.script

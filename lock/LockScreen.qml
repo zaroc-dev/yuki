@@ -44,7 +44,7 @@ Scope {
             color: "transparent"
             exclusionMode: ExclusionMode.Ignore
             WlrLayershell.layer: WlrLayer.Overlay
-            WlrLayershell.namespace: "quickshell-lock-preview"
+            WlrLayershell.namespace: "yuki-lock-preview"
             WlrLayershell.keyboardFocus: modelData.name === Niri.focusedOutput ? WlrKeyboardFocus.Exclusive : WlrKeyboardFocus.None
 
             LockSurface {

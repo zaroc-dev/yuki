@@ -23,7 +23,7 @@ PanelWindow {
     exclusionMode: ExclusionMode.Ignore
     color: Theme.crust
     WlrLayershell.layer: WlrLayer.Background
-    WlrLayershell.namespace: "quickshell-wallpaper"
+    WlrLayershell.namespace: "yuki-wallpaper"
 
     onPathChanged: {
         const back = front === a ? b : a;

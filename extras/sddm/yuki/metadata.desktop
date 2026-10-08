@@ -1,6 +1,6 @@
 [SddmGreeterTheme]
-Name=shell
-Description=Login screen matching the Quickshell desktop shell (lock screen design)
+Name=yuki
+Description=Login screen matching the yuki desktop shell (lock screen design)
 Author=zaroc
 Type=sddm-theme
 Version=1.0
@@ -9,6 +9,6 @@ Screenshot=
 MainScript=Main.qml
 ConfigFile=theme.conf
 TranslationsDirectory=translations
-Theme-Id=shell
+Theme-Id=yuki
 Theme-API=2.0
 QtVersion=6

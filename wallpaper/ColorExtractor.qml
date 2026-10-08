@@ -57,7 +57,7 @@ Scope {
         color: "transparent"
         exclusionMode: ExclusionMode.Ignore
         WlrLayershell.layer: WlrLayer.Background
-        WlrLayershell.namespace: "quickshell-color-extractor"
+        WlrLayershell.namespace: "yuki-color-extractor"
         mask: Region {}
 
         Canvas {

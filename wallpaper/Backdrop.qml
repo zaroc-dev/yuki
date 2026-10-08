@@ -24,7 +24,7 @@ PanelWindow {
     color: Theme.crust
     mask: Region {}
     WlrLayershell.layer: WlrLayer.Background
-    WlrLayershell.namespace: "quickshell-backdrop"
+    WlrLayershell.namespace: "yuki-backdrop"
 
     Image {
         id: img

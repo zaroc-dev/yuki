@@ -1,4 +1,4 @@
-# shell
+# yuki
 
 A Quickshell desktop shell for niri: three floating, frosted pills along the top edge.
 
@@ -24,7 +24,7 @@ daemon, with toasts in the top right of the focused output, and has an app launc
 - **OSD:** a volume/brightness pill on the focused screen for any change (keys, apps).
 - **Idle:** lock and screen-off timers, respecting apps that inhibit idle; "Awake" toggle.
 - **Power:** power-profiles-daemon picker (power menu, battery popup, settings).
-- **App colors:** niri, kitty and GTK snippets in `~/.local/state/shell/theme/`
+- **App colors:** niri, kitty and GTK snippets in `~/.local/state/yuki/theme/`
   (see `~/dotfiles/HANDOFF.md`), plus a blurred wallpaper for niri's overview backdrop.
 
 ## Start menu & settings
@@ -74,50 +74,50 @@ out on unlock. It shows a clock, your avatar (`~/.face.icon`), and a password
 field authenticated through PAM (`pam/password.conf`, plain `pam_unix`). Also:
 now-playing controls, the niri keyboard layout, and suspend/restart/shut down.
 
-`qs … ipc call lock preview` shows the same UI *without* locking (Esc leaves).
+`yuki ipc call lock preview` shows the same UI *without* locking (Esc leaves).
 Use it to tweak the design safely.
 
 If the shell ever dies while locked, niri keeps the session locked (by design).
 Recover from a TTY (Ctrl+Alt+F2):
 
 ```sh
-WAYLAND_DISPLAY=wayland-1 qs -p ~/source/shell &   # start a new instance
-WAYLAND_DISPLAY=wayland-1 qs -p ~/source/shell ipc call lock lock
+WAYLAND_DISPLAY=wayland-1 yuki &   # start a new instance
+WAYLAND_DISPLAY=wayland-1 yuki ipc call lock lock
 ```
 
 and unlock normally on the new lock screen.
 
-For idle locking, have swayidle/hypridle call `qs -p ~/source/shell ipc call lock lock`.
+For idle locking, have swayidle/hypridle call `yuki ipc call lock lock`.
 
 ## Nix flake
 
 ```nix
-inputs.shell.url = "github:zaroc-dev/shell";
+inputs.yuki.url = "github:zaroc-dev/yuki";
 ```
 
 | Output | What |
 | --- | --- |
-| `packages.<system>.shell` (default) | `shell` = `qs -p <config>` with cliphist, wl-clipboard, brightnessctl, xdg-utils on PATH. `shell ipc call …` talks to it. `.override { configDir = "/path"; }` runs a checkout instead of the store copy |
+| `packages.<system>.yuki` (default) | `yuki` = `qs -p <config>` with cliphist, wl-clipboard, brightnessctl, xdg-utils on PATH. `yuki ipc call …` talks to it. `.override { configDir = "/path"; }` runs a checkout instead of the store copy |
 | `packages.<system>.sddm-theme` | `.override { background = ./wall.jpg; settings = { accent = "#…"; }; }` |
 | `packages.<system>.plymouth-theme` | `.override { accent = …; base = …; surface = …; text = …; }` |
-| `homeManagerModules.default` | `programs.shell = { enable; configDir; systemd.enable; gtk.enable; }` |
-| `nixosModules.default` | `programs.shell = { sddm = { enable; background; }; plymouth.enable; palette = { … }; }` |
+| `homeManagerModules.default` | `programs.yuki = { enable; configDir; systemd.enable; gtk.enable; }` |
+| `nixosModules.default` | `programs.yuki = { sddm = { enable; background; }; plymouth.enable; palette = { … }; }` |
 
 For hot reload, point `configDir` at a checkout (e.g. an out-of-store
 symlink): the shell then runs the live QML, and settings are shared with the
-packaged build because the shell id is pinned (`//@ pragma ShellId shell`).
+packaged build because the shell id is pinned (`//@ pragma ShellId yuki`).
 
 ```nix
 # home-manager
-imports = [ inputs.shell.homeManagerModules.default ];
-programs.shell = {
+imports = [ inputs.yuki.homeManagerModules.default ];
+programs.yuki = {
   enable = true;
   configDir = "${config.home.homeDirectory}/source/shell";
 };
 
 # nixos
-imports = [ inputs.shell.nixosModules.default ];
-programs.shell = {
+imports = [ inputs.yuki.nixosModules.default ];
+programs.yuki = {
   sddm = { enable = true; background = ./wallpapers/raiden.shogun.jpg; };
   plymouth.enable = true;
 };
@@ -125,34 +125,31 @@ programs.shell = {
 
 ## Running
 
-Needs Quickshell ≥ 0.3 (`pkgs.quickshell`), niri, NetworkManager, PipeWire, UPower,
-`JetBrainsMono Nerd Font` (icons) and `Inter` (text).
+Needs niri, NetworkManager, PipeWire, UPower, BlueZ, power-profiles-daemon,
+and the fonts `Inter` and `JetBrainsMono Nerd Font` (the home-manager module
+installs the fonts).
 
 ```sh
-nix run nixpkgs#quickshell -- -p ~/source/shell    # try it
+nix run github:zaroc-dev/yuki                       # try it
+nix run nixpkgs#quickshell -- -p ~/source/shell     # from a checkout (hot reload)
 ```
 
-Files are hot-reloaded on save.
-
-To make it your shell, add `pkgs.quickshell` to your packages, then in niri's `config.kdl`:
+In niri's `config.kdl`:
 
 ```kdl
-// spawn-at-startup "noctalia"
-spawn-at-startup "qs" "-p" "/home/zaroc/source/shell"
+spawn-at-startup "yuki"
 ```
 
 and in `keybinds.kdl`:
 
 ```kdl
-Mod+Space hotkey-overlay-title="App Launcher" { spawn "qs" "-p" "/home/zaroc/source/shell" "ipc" "call" "launcher" "toggle"; }
-Mod+N     hotkey-overlay-title="Notifications" { spawn "qs" "-p" "/home/zaroc/source/shell" "ipc" "call" "bar" "toggle" "notifications"; }
-Super+Alt+L hotkey-overlay-title="Lock" { spawn "qs" "-p" "/home/zaroc/source/shell" "ipc" "call" "lock" "lock"; }
+Mod+Space   hotkey-overlay-title="App Launcher"  { spawn "yuki" "ipc" "call" "launcher" "toggle"; }
+Mod+N       hotkey-overlay-title="Notifications" { spawn "yuki" "ipc" "call" "bar" "toggle" "notifications"; }
+Super+Alt+L hotkey-overlay-title="Lock"          { spawn "yuki" "ipc" "call" "lock" "lock"; }
 ```
 
-(Or symlink this directory to `~/.config/quickshell` and drop the `-p …` everywhere.)
-
-While noctalia is running it owns `org.freedesktop.Notifications`. This shell then
-shows no toasts, and takes the name over automatically once noctalia exits.
+If another notification daemon is running, it owns `org.freedesktop.Notifications`
+and yuki shows no toasts until it exits; then yuki takes the name over.
 
 ## Interaction
 
@@ -171,36 +168,36 @@ shows no toasts, and takes the name over automatically once noctalia exits.
 ## IPC
 
 ```sh
-qs -p ~/source/shell ipc show
-qs … ipc call launcher toggle|open|close
-qs … ipc call bar toggle media|calendar|notifications|network|volume|power
-qs … ipc call lock lock|preview|closePreview|isLocked
-qs … ipc call settings open [appearance|wallpaper|bar|notifications|start|about]
-qs … ipc call wallpaper set <output|all> <path>
-qs … ipc call wallpaper random <output> · shuffle · get <output>
-qs … ipc call theme source wallpaper|catppuccin|custom
-qs … ipc call theme mode dark|light
-qs … ipc call theme scheme tonal-spot|content|expressive|fidelity|fruit-salad|monochrome|neutral|rainbow|vibrant
-qs … ipc call clipboard toggle|clear
-qs … ipc call screenshot region|screen|window
-qs … ipc call audio up <step>|down <step>|mute|micMute
-qs … ipc call media toggle|next|previous
-qs … ipc call brightness up|down|set <percent>
-qs … ipc call idle toggleKeepAwake
-qs … ipc call bar toggle start|media|calendar|notifications|bluetooth|network|volume|battery|power
-qs … ipc call shell reload [true = hard]
-qs … ipc call power run lock|suspend|logout|reboot|poweroff
-qs … ipc call theme flavor mocha|macchiato|frappe|latte|custom
-qs … ipc call theme accent mauve|blue|pink|…
-qs … ipc call theme cycle
-qs … ipc call notifications toggleDnd|clear
+yuki ipc show
+yuki ipc call launcher toggle|open|close
+yuki ipc call bar toggle media|calendar|notifications|network|volume|power
+yuki ipc call lock lock|preview|closePreview|isLocked
+yuki ipc call settings open [appearance|wallpaper|bar|notifications|start|about]
+yuki ipc call wallpaper set <output|all> <path>
+yuki ipc call wallpaper random <output> · shuffle · get <output>
+yuki ipc call theme source wallpaper|catppuccin|custom
+yuki ipc call theme mode dark|light
+yuki ipc call theme scheme tonal-spot|content|expressive|fidelity|fruit-salad|monochrome|neutral|rainbow|vibrant
+yuki ipc call clipboard toggle|clear
+yuki ipc call screenshot region|screen|window
+yuki ipc call audio up <step>|down <step>|mute|micMute
+yuki ipc call media toggle|next|previous
+yuki ipc call brightness up|down|set <percent>
+yuki ipc call idle toggleKeepAwake
+yuki ipc call bar toggle start|media|calendar|notifications|bluetooth|network|volume|battery|power
+yuki ipc call shell reload [true = hard]
+yuki ipc call power run lock|suspend|logout|reboot|poweroff
+yuki ipc call theme flavor mocha|macchiato|frappe|latte|custom
+yuki ipc call theme accent mauve|blue|pink|…
+yuki ipc call theme cycle
+yuki ipc call notifications toggleDnd|clear
 ```
 
 ## Theming
 
 All colors come from `config/Theme.qml`. Whatever the source, it exposes the same
 Catppuccin-shaped palette, so every widget works with every theme. Settings
-persist in `~/.local/state/quickshell/by-shell/<id>/settings.json`. The file is
+persist in `~/.local/state/quickshell/by-shell/yuki/settings.json`. The file is
 watched, so editing it by hand restyles the shell live.
 
 - `themeSource: "wallpaper"`: Material You from the wallpaper (`scheme`, `themeMode`, `colorScreen`)
@@ -217,7 +214,7 @@ shell.qml            root: wallpapers, bars, toasts, launcher, lock screen, sett
 lib/                 material.mjs (Material You), vendored material-color-utilities, color worker
 wallpaper/           per-output Wallpaper windows, ColorExtractor
 settings/            SettingsWindow and its pages
-extras/sddm/shell/   SDDM login theme in the lock screen's design
+extras/sddm/yuki/    SDDM login theme in the lock screen's design
 extras/plymouth/     Plymouth boot theme + image generator
 config/              Settings (persisted), Theme (palette from wallpaper/Catppuccin), Wallpapers, Icons
 services/            singletons: Niri (IPC event stream), Audio, Media, Net, Notifs, Apps, Lock, Power, Ui

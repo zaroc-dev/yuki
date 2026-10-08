@@ -25,7 +25,7 @@ Variants {
         color: "transparent"
         mask: Region {}
         WlrLayershell.layer: WlrLayer.Overlay
-        WlrLayershell.namespace: "quickshell-osd"
+        WlrLayershell.namespace: "yuki-osd"
         BackgroundEffect.blurRegion: Region {
             item: Theme.blur ? pill : null
             radius: pill.radius
