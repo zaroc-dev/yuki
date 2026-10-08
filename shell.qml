@@ -2,6 +2,7 @@
 import QtQuick
 import Quickshell
 import Quickshell.Io
+import Quickshell.Services.Mpris
 import qs.config
 import qs.services
 import qs.bar
@@ -185,7 +186,10 @@ ShellRoot {
         function previous(): void {
             Media.active?.previous();
         }
-    }
+        // Players the shell sees and which one the bar shows.
+        function status(): string {
+            return Media.players.map(p => `${p === Media.active ? "*" : " "} ${Media.keyOf(p)} [${p.identity}] ${MprisPlaybackState.toString(p.playbackState)} "${p.trackTitle}"`).join("\n") || "no players";
+        }
     }
 
     IpcHandler {

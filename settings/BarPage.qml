@@ -2,6 +2,7 @@ import QtQuick
 import QtQuick.Layouts
 import qs.config
 import qs.components
+import qs.services
 
 Page {
     Section {
@@ -52,6 +53,24 @@ Page {
             Toggle {
                 checked: Settings.d.showMedia
                 onToggled: v => Settings.d.showMedia = v
+            }
+        }
+
+        SettingRow {
+            label: "Preferred player"
+            description: "Always shown while it's running, even if something else starts playing. Right-click a player in the media popup to set it."
+
+            Segmented {
+                readonly property var keys: {
+                    const k = Media.players.map(p => Media.keyOf(p)).filter(k => k);
+                    if (Settings.d.preferredPlayer && !k.includes(Settings.d.preferredPlayer))
+                        k.push(Settings.d.preferredPlayer);
+                    return [...new Set(k)];
+                }
+
+                options: [{ value: "", label: "Auto" }].concat(keys.map(k => ({ value: k, label: k[0].toUpperCase() + k.slice(1) })))
+                value: Settings.d.preferredPlayer
+                onSelected: v => Settings.d.preferredPlayer = v
             }
         }
 

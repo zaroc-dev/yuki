@@ -86,6 +86,9 @@ Singleton {
             property bool showDate: true
             property bool showMedia: true
             property bool showLauncherButton: true
+            // Media player shown in the bar whenever it's running (matched
+            // against MPRIS identity / desktop entry, case-insensitive). "" = auto.
+            property string preferredPlayer: ""
             property bool showActiveWindow: true
 
             // ---- notifications ----

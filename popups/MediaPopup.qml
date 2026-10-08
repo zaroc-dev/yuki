@@ -169,11 +169,20 @@ BarPopup {
                 required property var modelData
                 readonly property bool current: modelData === root.player
 
-                width: chipLabel.implicitWidth + 20
+                readonly property bool preferred: Media.preferred !== "" && Media.keyOf(modelData) === Media.preferred
+
+                width: chipRow.implicitWidth + 20
                 height: 26
                 hoverEnabled: true
+                acceptedButtons: Qt.LeftButton | Qt.RightButton
                 cursorShape: Qt.PointingHandCursor
-                onClicked: Media.pinned = modelData
+                // Left: show this one now. Right: make it the preferred player.
+                onClicked: e => {
+                    if (e.button === Qt.RightButton)
+                        Settings.d.preferredPlayer = preferred ? "" : Media.keyOf(modelData);
+                    else
+                        Media.pinned = modelData;
+                }
 
                 Rectangle {
                     anchors.fill: parent
@@ -181,13 +190,26 @@ BarPopup {
                     color: chip.current ? Theme.accent : chip.containsMouse ? Theme.surface1 : Theme.surface0
                 }
 
-                StyledText {
-                    id: chipLabel
+                Row {
+                    id: chipRow
 
                     anchors.centerIn: parent
-                    text: Media.nameOf(chip.modelData)
-                    font.pixelSize: Theme.smallFontSize
-                    color: chip.current ? Theme.onAccent : Theme.text
+                    spacing: 4
+
+                    Icon {
+                        anchors.verticalCenter: parent.verticalCenter
+                        visible: chip.preferred
+                        text: Icons.pin
+                        size: 11
+                        color: chip.current ? Theme.onAccent : Theme.accent
+                    }
+
+                    StyledText {
+                        anchors.verticalCenter: parent.verticalCenter
+                        text: Media.nameOf(chip.modelData)
+                        font.pixelSize: Theme.smallFontSize
+                        color: chip.current ? Theme.onAccent : Theme.text
+                    }
                 }
             }
         }

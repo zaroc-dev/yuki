@@ -3,6 +3,7 @@ pragma Singleton
 import QtQuick
 import Quickshell
 import Quickshell.Services.Mpris
+import qs.config
 
 Singleton {
     id: root
@@ -10,7 +11,20 @@ Singleton {
     readonly property var players: Mpris.players.values
     // Set when the user explicitly picks a player; otherwise follow whatever plays.
     property MprisPlayer pinned: null
-    readonly property MprisPlayer active: (pinned && players.includes(pinned) ? pinned : null) ?? players.find(p => p.isPlaying) ?? players[0] ?? null
+    readonly property string preferred: Settings.d.preferredPlayer.toLowerCase()
+    readonly property MprisPlayer preferredPlayer: preferred ? players.find(p => matches(p, preferred)) ?? null : null
+    // Chosen in the media popup > preferred player (whenever it runs) >
+    // whatever is playing > anything.
+    readonly property MprisPlayer active: (pinned && players.includes(pinned) ? pinned : null) ?? preferredPlayer ?? players.find(p => p.isPlaying) ?? players[0] ?? null
+
+    function matches(player, name) {
+        return [player.identity, player.desktopEntry, player.dbusName].some(s => (s ?? "").toLowerCase().includes(name));
+    }
+
+    // Stable key for a player, used by the "preferred player" setting.
+    function keyOf(player) {
+        return (player?.desktopEntry || player?.identity || "").toLowerCase();
+    }
 
     function formatTime(seconds) {
         if (!isFinite(seconds) || seconds < 0)
