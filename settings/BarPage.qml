@@ -27,6 +27,21 @@ Page {
     }
 
     Section {
+        title: "Left"
+
+        SettingRow {
+            icon: Icons.apps
+            label: "Launcher button"
+            description: "Next to the start button (the launcher also opens from the start menu or a keybind)"
+
+            Toggle {
+                checked: Settings.d.showLauncherButton
+                onToggled: v => Settings.d.showLauncherButton = v
+            }
+        }
+    }
+
+    Section {
         title: "Widgets"
 
         SettingRow {

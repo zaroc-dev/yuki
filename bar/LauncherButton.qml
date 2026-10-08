@@ -4,6 +4,7 @@ import qs.components
 import qs.services
 
 BarButton {
+    visible: Settings.d.showLauncherButton
     hPadding: 8
     active: Ui.launcherOpen
     onClicked: Ui.launcherOpen = !Ui.launcherOpen

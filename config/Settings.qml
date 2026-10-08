@@ -85,6 +85,7 @@ Singleton {
             property bool clock24h: true
             property bool showDate: true
             property bool showMedia: true
+            property bool showLauncherButton: true
             property bool showActiveWindow: true
 
             // ---- notifications ----
