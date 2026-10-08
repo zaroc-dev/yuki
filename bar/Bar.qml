@@ -105,7 +105,9 @@ PanelWindow {
 
         x: left.x + left.width + Theme.gap
         y: Theme.gap
-        visible: media.visible
+        // Not media.visible: that reports effective visibility, which stays
+        // false while this pill is hidden, so it could never reappear.
+        visible: Media.active !== null && Settings.d.showMedia
         MediaWidget {
             id: media
         }
