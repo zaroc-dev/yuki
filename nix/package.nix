@@ -65,6 +65,7 @@ stdenvNoCC.mkDerivation {
   '';
 
   meta = {
+    license = lib.licenses.asl20;
     description = "Quickshell desktop shell for niri";
     platforms = lib.platforms.linux;
     mainProgram = "shell";

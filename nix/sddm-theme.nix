@@ -33,6 +33,7 @@ stdenvNoCC.mkDerivation {
   '';
 
   meta = {
+    license = lib.licenses.asl20;
     description = "SDDM theme matching the shell's lock screen";
     platforms = lib.platforms.linux;
   };

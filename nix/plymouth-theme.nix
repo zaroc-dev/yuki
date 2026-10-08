@@ -39,6 +39,7 @@ stdenvNoCC.mkDerivation {
   '';
 
   meta = {
+    license = lib.licenses.asl20;
     description = "Plymouth boot splash matching the shell";
     platforms = lib.platforms.linux;
   };

@@ -233,3 +233,8 @@ pam/                 PAM config used by the lock screen
 - Popups opened from IPC can't take a pointer grab (Wayland only grants that in
   response to a click). They close when window focus changes instead of on any
   outside click.
+
+## License
+
+Apache-2.0, see [LICENSE](LICENSE). `lib/mcu` is Google's
+material-color-utilities, also Apache-2.0 (its own LICENSE is kept there).
