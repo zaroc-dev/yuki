@@ -1,4 +1,5 @@
 //@ pragma UseQApplication
+//@ pragma ShellId shell
 import QtQuick
 import Quickshell
 import Quickshell.Io
