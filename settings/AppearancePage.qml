@@ -315,4 +315,24 @@ Page {
             }
         }
     }
+
+    Section {
+        title: "Window switcher"
+        subtitle: "Alt+Tab: bind it in niri to `yuki ipc call switcher next` (Shift: `prev`)."
+
+        SettingRow {
+            icon: Icons.switcher
+            label: "Style"
+
+            Segmented {
+                options: [
+                    { value: "cards", label: "Cards", icon: Icons.cards },
+                    { value: "list", label: "List", icon: Icons.list },
+                    { value: "island", label: "Island", icon: Icons.island }
+                ]
+                value: Settings.d.switcherStyle
+                onSelected: v => Settings.d.switcherStyle = v
+            }
+        }
+    }
 }

@@ -73,6 +73,11 @@ Import direction: `config` ← `services` ← `components` ← `bar`/`popups`/`s
   registers on startup; the dialog is a `LazyLoader` window while
   `agent.isActive`. After a wrong password the same `AuthFlow` asks again
   (`authenticationFailed`, then `isResponseRequired`).
+- **Switcher** (+ `popups/WindowSwitcher.qml`): MRU snapshot from niri's
+  `focus_timestamp` on the first `next`/`prev`. While open, a `ShortcutInhibitor`
+  makes Alt+Tab arrive as keys and the Alt release commits. Looks are
+  `popups/Switcher{Cards,List,Island}.qml` behind a `Loader`; each exposes
+  `panel`, `panelRadius` and `dims` for the window's blur/dim.
 - **Idle**: two `IdleMonitor`s (lock, screen off via niri `PowerOffMonitors`),
   `keepAwake` disables both.
 
@@ -98,7 +103,7 @@ output matches noctalia/matugen closely (verified: `#b3c5ff` vs `#b4c5ff`).
 
 `yuki-bar` (Top), `yuki-wallpaper` + `yuki-backdrop` + `yuki-color-extractor`
 (Background), `yuki-notifications`, `yuki-osd`, `yuki-launcher`,
-`yuki-clipboard`, `yuki-settings`, `yuki-polkit`, `yuki-lock-preview` (Overlay). The generated
+`yuki-clipboard`, `yuki-settings`, `yuki-polkit`, `yuki-switcher`, `yuki-lock-preview` (Overlay). The generated
 niri.kdl places `yuki-backdrop` within niri's overview backdrop. Toasts and OSD
 are one window *per screen*, shown only on the focused output.
 

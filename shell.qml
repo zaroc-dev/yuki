@@ -45,6 +45,7 @@ ShellRoot {
     ClipboardPanel {}
     Osd {}
     PolkitDialog {}
+    WindowSwitcher {}
 
     // `qs -p <dir> ipc call launcher toggle`, etc.
     IpcHandler {
@@ -58,6 +59,25 @@ ShellRoot {
         }
         function close(): void {
             Ui.launcherOpen = false;
+        }
+    }
+
+    // Bind in niri: Alt+Tab → `switcher next`, Alt+Shift+Tab → `switcher prev`.
+    IpcHandler {
+        target: "switcher"
+
+        function next(): void {
+            Switcher.next();
+        }
+        function prev(): void {
+            Switcher.prev();
+        }
+        function close(): void {
+            Switcher.cancel();
+        }
+        // cards | list | island
+        function style(name: string): void {
+            Settings.d.switcherStyle = name;
         }
     }
 
