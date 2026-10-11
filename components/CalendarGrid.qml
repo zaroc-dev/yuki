@@ -2,14 +2,16 @@ import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
 import qs.config
-import qs.components
 
-BarPopup {
+// Month view with navigation; today is filled with the accent. Clicking the
+// month title jumps back to the current month.
+ColumnLayout {
     id: root
 
     property date today: new Date()
     property int month: today.getMonth()
     property int year: today.getFullYear()
+    readonly property bool onCurrentMonth: month === today.getMonth() && year === today.getFullYear()
 
     function shift(delta) {
         const d = new Date(year, month + delta, 1);
@@ -17,28 +19,31 @@ BarPopup {
         year = d.getFullYear();
     }
 
-    onVisibleChanged: {
-        if (visible) {
-            month = today.getMonth();
-            year = today.getFullYear();
-        }
+    function reset() {
+        today = new Date();
+        month = today.getMonth();
+        year = today.getFullYear();
     }
 
-    StyledText {
-        Layout.fillWidth: true
-        text: Qt.formatDateTime(root.today, "dddd, d MMMM yyyy")
-        color: Theme.subtext0
-        font.pixelSize: Theme.smallFontSize + 1
-    }
+    spacing: 6
 
     RowLayout {
         Layout.fillWidth: true
 
-        StyledText {
+        MouseArea {
             Layout.fillWidth: true
-            text: Qt.formatDate(new Date(root.year, root.month, 1), "MMMM yyyy")
-            font.pixelSize: 15
-            font.weight: Font.DemiBold
+            implicitHeight: monthTitle.implicitHeight
+            cursorShape: root.onCurrentMonth ? Qt.ArrowCursor : Qt.PointingHandCursor
+            onClicked: root.reset()
+
+            StyledText {
+                id: monthTitle
+
+                width: parent.width
+                text: Qt.formatDate(new Date(root.year, root.month, 1), "MMMM yyyy")
+                font.pixelSize: 15
+                font.weight: Font.DemiBold
+            }
         }
 
         IconButton {
@@ -71,7 +76,7 @@ BarPopup {
     MonthGrid {
         id: grid
 
-        Layout.preferredWidth: 280
+        Layout.fillWidth: true
         month: root.month
         year: root.year
         locale: Qt.locale()
@@ -80,22 +85,23 @@ BarPopup {
             id: day
 
             required property var model
+            readonly property bool weekend: model.date.getDay() === 0 || model.date.getDay() === 6
 
-            implicitWidth: 36
-            implicitHeight: 32
+            implicitWidth: 32
+            implicitHeight: 30
 
             Rectangle {
                 anchors.centerIn: parent
-                width: 30
-                height: 30
-                radius: 15
+                width: 28
+                height: 28
+                radius: 14
                 color: day.model.today ? Theme.accent : "transparent"
             }
 
             StyledText {
                 anchors.centerIn: parent
                 text: day.model.day
-                color: day.model.today ? Theme.onAccent : day.model.month === grid.month ? Theme.text : Theme.surface2
+                color: day.model.today ? Theme.onAccent : day.model.month !== grid.month ? Theme.surface2 : day.weekend ? Theme.subtext0 : Theme.text
                 font.weight: day.model.today ? Font.Bold : Font.Normal
             }
         }

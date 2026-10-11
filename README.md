@@ -5,10 +5,10 @@ A Quickshell desktop shell for niri: three floating, frosted pills along the top
 | Pill   | Contents                                                                    |
 | ------ | --------------------------------------------------------------------------- |
 | left   | start menu + app launcher; media player as its own pill (art, title, controls, progress) |
-| center | clock/date → calendar, niri workspaces of *this* output, its active window  |
+| center | clock/date → dashboard, niri workspaces of *this* output, its active window  |
 | right  | tray · notifications · bluetooth, network (name on hover), volume, battery · power |
 
-Every widget has a popup: media controls + seek + player switcher, a calendar,
+Every widget has a popup: media controls + seek + player switcher, a dashboard,
 a notification center (with do-not-disturb), the network (wired/Wi-Fi list with a password prompt),
 and audio (output/input sliders and device pickers). The shell is also the notification
 daemon, with toasts in the top right of the focused output, and has an app launcher.
@@ -23,6 +23,14 @@ daemon, with toasts in the top right of the focused output, and has an app launc
   the shell shows a toast with a thumbnail and Open / Show folder.
 - **OSD:** a volume/brightness pill on the focused screen for any change (keys, apps).
 - **Idle:** lock and screen-off timers, respecting apps that inhibit idle; "Awake" toggle.
+- **Dashboard:** click the clock. A greeting with a big clock, uptime and
+  sunrise/sunset; weather now, for the next hours and the next 5 days; the calendar;
+  now playing; CPU, memory, disk and CPU temperature gauges (polled only while it's
+  open). The lock screen shows the current weather under the date.
+- **Weather:** [Open-Meteo](https://open-meteo.com) (no API key), cached in
+  `~/.cache/quickshell/by-shell/yuki/weather.json` and refreshed every 30 min while in
+  use. Set a city or `lat,lon` in Settings → Bar; left empty, the location comes from
+  your IP via ipinfo.io. Nothing is fetched until the dashboard or lock screen needs it.
 - **Window switcher:** Alt+Tab over the windows in most-recently-used order (Tab /
   Shift+Tab / arrows, release Alt to switch, Esc cancels), in three looks to pick
   from in Appearance: cards, list, or an island under the bar. App icons for now;
@@ -185,7 +193,7 @@ and yuki shows no toasts until it exits; then yuki takes the name over.
 yuki ipc show
 yuki ipc call launcher toggle|open|close
 yuki ipc call switcher next|prev|close · style cards|list|island
-yuki ipc call bar toggle media|calendar|notifications|network|volume|power
+yuki ipc call bar toggle media|dashboard|notifications|network|volume|power
 yuki ipc call lock lock|preview|closePreview|isLocked
 yuki ipc call settings open [appearance|wallpaper|bar|notifications|start|about]
 yuki ipc call wallpaper set <output|all> <path>
@@ -199,7 +207,7 @@ yuki ipc call audio up <step>|down <step>|mute|micMute
 yuki ipc call media toggle|next|previous
 yuki ipc call brightness up|down|set <percent>
 yuki ipc call idle toggleKeepAwake
-yuki ipc call bar toggle start|media|calendar|notifications|bluetooth|network|volume|battery|power
+yuki ipc call bar toggle start|media|dashboard|notifications|bluetooth|network|volume|battery|power
 yuki ipc call shell reload [true = hard]
 yuki ipc call power run lock|suspend|logout|reboot|poweroff
 yuki ipc call theme flavor mocha|macchiato|frappe|latte|custom

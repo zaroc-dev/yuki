@@ -199,6 +199,36 @@ Item {
                 font.pixelSize: 21
                 color: Theme.subtext1
             }
+
+            // Weather (cached, so it's there even before the network is).
+            Row {
+                anchors.horizontalCenter: parent.horizontalCenter
+                topPadding: 14
+                spacing: 10
+                visible: Weather.available
+                Component.onCompleted: Weather.refresh()
+
+                Icon {
+                    anchors.verticalCenter: parent.verticalCenter
+                    text: Weather.icon
+                    size: 26
+                    color: Theme.accent
+                }
+
+                StyledText {
+                    anchors.verticalCenter: parent.verticalCenter
+                    text: Weather.temp
+                    font.pixelSize: 21
+                    font.weight: Font.DemiBold
+                }
+
+                StyledText {
+                    anchors.verticalCenter: parent.verticalCenter
+                    text: Weather.place ? `${Weather.condition} · ${Weather.place}` : Weather.condition
+                    font.pixelSize: 17
+                    color: Theme.subtext1
+                }
+            }
         }
 
         // Avatar, name, password.

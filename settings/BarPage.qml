@@ -28,6 +28,73 @@ Page {
     }
 
     Section {
+        title: "Weather"
+        subtitle: "In the clock's dashboard and on the lock screen. Forecasts from Open-Meteo."
+
+        SettingRow {
+            icon: Icons.weatherPartly
+            label: "Show weather"
+
+            Toggle {
+                checked: Settings.d.weather
+                onToggled: v => Settings.d.weather = v
+            }
+        }
+
+        SettingRow {
+            icon: Icons.location
+            label: "Location"
+            description: Settings.d.weatherLocation ? (Weather.error || (Weather.place ? `Showing ${Weather.place}` : "")) : "Empty: located by your IP (ipinfo.io)"
+
+            Rectangle {
+                implicitWidth: 220
+                implicitHeight: 36
+                radius: Theme.innerRadius
+                color: Qt.alpha(Theme.surface1, 0.6)
+                border.width: 1
+                border.color: locationInput.activeFocus ? Theme.accent : "transparent"
+
+                TextInput {
+                    id: locationInput
+
+                    anchors.fill: parent
+                    anchors.leftMargin: 12
+                    anchors.rightMargin: 12
+                    verticalAlignment: TextInput.AlignVCenter
+                    clip: true
+                    text: Settings.d.weatherLocation
+                    color: Theme.text
+                    selectionColor: Qt.alpha(Theme.accent, 0.4)
+                    font.family: Theme.font
+                    font.pixelSize: Theme.fontSize
+                    onEditingFinished: Settings.d.weatherLocation = text.trim()
+
+                    StyledText {
+                        anchors.verticalCenter: parent.verticalCenter
+                        visible: locationInput.text === "" && !locationInput.activeFocus
+                        text: "City or lat,lon"
+                        color: Theme.overlay1
+                    }
+                }
+            }
+        }
+
+        SettingRow {
+            icon: Icons.thermometer
+            label: "Units"
+
+            Segmented {
+                options: [
+                    { value: false, label: "°C" },
+                    { value: true, label: "°F" }
+                ]
+                value: Settings.d.fahrenheit
+                onSelected: v => Settings.d.fahrenheit = v
+            }
+        }
+    }
+
+    Section {
         title: "Left"
 
         SettingRow {

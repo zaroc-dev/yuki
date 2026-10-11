@@ -36,6 +36,6 @@ Singleton {
     property var activePopup: null
 
     // Asks the bar on `output` to toggle the popup called `name`
-    // (media, calendar, notifications, network, volume).
+    // (media, dashboard, notifications, network, volume).
     signal popupRequested(string name, string output)
 }

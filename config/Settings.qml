@@ -97,6 +97,12 @@ Singleton {
             // Look of the Alt+Tab switcher: cards | list | island
             property string switcherStyle: "cards"
 
+            // ---- weather (dashboard, lock screen) ----
+            property bool weather: true
+            // City name or "lat,lon"; empty = locate by IP (ipinfo.io).
+            property string weatherLocation: ""
+            property bool fahrenheit: false
+
             // ---- notifications ----
             property bool dnd: false
             property real toastSeconds: 6
