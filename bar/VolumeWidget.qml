@@ -18,6 +18,15 @@ BarButton {
     }
     onWheel: e => Audio.setVolume(Audio.sink, Audio.volume + (e.angleDelta.y > 0 ? 0.05 : -0.05))
 
+    // Privacy indicator: an app is recording from the microphone.
+    Icon {
+        anchors.verticalCenter: parent.verticalCenter
+        visible: Audio.micInUse
+        text: Icons.mic
+        size: 14
+        color: Theme.red
+    }
+
     Icon {
         anchors.verticalCenter: parent.verticalCenter
         text: Icons.volume(Audio.volume, Audio.muted)
