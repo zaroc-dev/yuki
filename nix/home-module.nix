@@ -19,8 +19,10 @@ in
       example = lib.literalExpression ''"''${config.home.homeDirectory}/source/shell"'';
       description = ''
         Run the QML straight from this directory (e.g. a git checkout) instead
-        of the store copy, which keeps Quickshell's hot reload. Settings live in
-        ~/.local/state/quickshell/by-shell/yuki either way.
+        of the store copy, which keeps Quickshell's hot reload. If the directory
+        has no shell.qml (e.g. a machine without the checkout), the store copy
+        is used. Settings live in ~/.local/state/quickshell/by-shell/yuki
+        either way.
       '';
     };
 
