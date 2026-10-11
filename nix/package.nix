@@ -5,6 +5,7 @@
   quickshell,
   bash,
   coreutils,
+  dbus,
   procps,
   cliphist,
   wl-clipboard,
@@ -53,6 +54,7 @@ stdenvNoCC.mkDerivation {
         lib.makeBinPath [
           bash
           coreutils
+          dbus
           procps
           cliphist
           wl-clipboard
