@@ -21,6 +21,9 @@ daemon, with toasts in the top right of the focused output, and has an app launc
   a searchable panel with image thumbnails, Enter copies, Del removes.
 - **Screenshots:** niri's own tools (region/screen/window from the start menu or IPC);
   the shell shows a toast with a thumbnail and Open / Show folder.
+- **Audio:** the volume popup has output/input device pickers and a per-app mixer
+  (a slider per playing app; click its icon to mute). While an app records from the
+  microphone, a red mic shows next to the volume and the popup names the app.
 - **OSD:** a volume/brightness pill on the focused screen for any change (keys, apps).
 - **Idle:** lock and screen-off timers, respecting apps that inhibit idle; "Awake" toggle.
 - **Dashboard:** click the clock. A greeting with a big clock, uptime and
