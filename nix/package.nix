@@ -17,6 +17,17 @@
 }:
 
 let
+  runtimePath = lib.makeBinPath [
+    bash
+    coreutils
+    dbus
+    procps
+    cliphist
+    wl-clipboard
+    brightnessctl
+    xdg-utils
+  ];
+
   src = lib.fileset.toSource {
     root = ../.;
     fileset = lib.fileset.unions [
@@ -47,21 +58,33 @@ stdenvNoCC.mkDerivation {
     mkdir -p $out/share/yuki $out/bin
     cp -r . $out/share/yuki
 
-    # `yuki` starts it; `yuki ipc call <target> <fn>` talks to it.
-    makeWrapper ${lib.getExe' quickshell "qs"} $out/bin/yuki \
-      --add-flags "-p ${if configDir != null then configDir else "$out/share/yuki"}" \
-      --prefix PATH : ${
-        lib.makeBinPath [
-          bash
-          coreutils
-          dbus
-          procps
-          cliphist
-          wl-clipboard
-          brightnessctl
-          xdg-utils
-        ]
-      }
+    ${
+      if configDir == null then
+        ''
+          # `yuki` starts it; `yuki ipc call <target> <fn>` talks to it.
+          makeWrapper ${lib.getExe' quickshell "qs"} $out/bin/yuki \
+            --add-flags "-p $out/share/yuki" \
+            --prefix PATH : ${runtimePath}
+        ''
+      else
+        ''
+          # Prefer the checkout (hot reload), but don't break machines that
+          # don't have it: fall back to the packaged copy.
+          mkdir -p $out/libexec
+          cat > $out/libexec/yuki <<'EOF'
+          #!${lib.getExe bash}
+          dir=${lib.escapeShellArg configDir}
+          if [ ! -f "$dir/shell.qml" ]; then
+            echo "yuki: no shell.qml in $dir, using the packaged copy" >&2
+            dir=@out@/share/yuki
+          fi
+          exec ${lib.getExe' quickshell "qs"} -p "$dir" "$@"
+          EOF
+          substituteInPlace $out/libexec/yuki --replace-fail @out@ $out
+          chmod +x $out/libexec/yuki
+          makeWrapper $out/libexec/yuki $out/bin/yuki --prefix PATH : ${runtimePath}
+        ''
+    }
 
     runHook postInstall
   '';

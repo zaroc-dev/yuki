@@ -12,11 +12,13 @@ Scope {
     readonly property string url: path ? "file://" + path : ""
     readonly property bool needed: path !== "" && !(path in Settings.d.seeds)
     property string pending: ""
+    property double started: 0
 
     function run() {
         if (!needed || pending === path || !worker.ready)
             return;
         pending = path;
+        started = Date.now();
         watchdog.restart();
         canvas.loadImage(url);
         if (canvas.isImageLoaded(url))
@@ -41,8 +43,11 @@ Scope {
         source: "file://" + Quickshell.shellPath("lib/colorworker.mjs")
         onReadyChanged: root.run()
         onMessage: msg => {
-            if (msg.seed)
+            if (msg.seed) {
                 Settings.setIn("seeds", msg.path, msg.seed);
+                // Only runs for wallpapers without a cached seed (e.g. first start).
+                console.info(`ColorExtractor: seed ${msg.seed} in ${Date.now() - root.started} ms`);
+            }
             if (root.pending === msg.path)
                 root.pending = "";
         }
@@ -63,8 +68,10 @@ Scope {
         Canvas {
             id: canvas
 
-            width: 128
-            height: 128
+            // Quantizing is the slow part (QV4): 64² is ~3.5× faster than 128²
+            // with practically the same seed; drawImage averages when scaling.
+            width: 64
+            height: 64
             opacity: 0
             onImageLoaded: requestPaint()
             onPaint: {

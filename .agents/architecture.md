@@ -89,7 +89,7 @@ Import direction: `config` ← `services` ← `components` ← `bar`/`popups`/`s
 
 ```
 Settings.d.themeSource ─┬─ "wallpaper": Wallpapers.colorSourcePath
-                        │      → ColorExtractor (Canvas 128×128 → WorkerScript lib/colorworker.mjs)
+                        │      → ColorExtractor (Canvas 64×64 → WorkerScript lib/colorworker.mjs)
                         │      → Settings.d.seeds[path] = "#hex" (cached per image)
                         │      → Theme.p = Material.palette(seed, scheme, dark)
                         ├─ "catppuccin": Theme.flavors[flavor] / latte for light
