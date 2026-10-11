@@ -24,6 +24,10 @@ daemon, with toasts in the top right of the focused output, and has an app launc
 - **OSD:** a volume/brightness pill on the focused screen for any change (keys, apps).
 - **Idle:** lock and screen-off timers, respecting apps that inhibit idle; "Awake" toggle.
 - **Power:** power-profiles-daemon picker (power menu, battery popup, settings).
+- **Polkit:** yuki is the authentication agent (pkexec, GNOME Disks, …): a centered
+  dialog on the focused screen with the action, the identity (click to switch when
+  there are several admins) and a password field. If another agent already runs,
+  yuki logs a warning and leaves it alone.
 - **App colors:** niri, kitty and GTK snippets in `~/.local/state/yuki/theme/`
   (see `~/dotfiles/HANDOFF.md`), plus a blurred wallpaper for niri's overview backdrop.
 

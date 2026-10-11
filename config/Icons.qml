@@ -24,6 +24,11 @@ Singleton {
     readonly property string restart: "\u{f0709}"
     readonly property string lockOutline: "\u{f0341}"
     readonly property string lockOpen: "\u{f0fc6}"
+    readonly property string shieldLock: "\u{f099d}"
+    readonly property string eye: "\u{f06d0}"
+    readonly property string eyeOff: "\u{f06d1}"
+    readonly property string account: "\u{f0013}"
+    readonly property string accountGroup: "\u{f0b58}"
 
     readonly property string settings: "\u{f08bb}"
     readonly property string sun: "\u{f05a8}"

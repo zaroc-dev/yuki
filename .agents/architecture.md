@@ -69,6 +69,10 @@ Import direction: `config` ← `services` ← `components` ← `bar`/`popups`/`s
   `pkill -USR1` kitty.
 - **Clipboard**: runs `wl-paste --watch cliphist store` (text + image) itself;
   lists/decodes via cliphist; thumbnails decoded into the cache dir.
+- **Polkit** (`popups/PolkitDialog.qml`, not a service): `PolkitAgent`
+  registers on startup; the dialog is a `LazyLoader` window while
+  `agent.isActive`. After a wrong password the same `AuthFlow` asks again
+  (`authenticationFailed`, then `isResponseRequired`).
 - **Idle**: two `IdleMonitor`s (lock, screen off via niri `PowerOffMonitors`),
   `keepAwake` disables both.
 
@@ -94,7 +98,7 @@ output matches noctalia/matugen closely (verified: `#b3c5ff` vs `#b4c5ff`).
 
 `yuki-bar` (Top), `yuki-wallpaper` + `yuki-backdrop` + `yuki-color-extractor`
 (Background), `yuki-notifications`, `yuki-osd`, `yuki-launcher`,
-`yuki-clipboard`, `yuki-settings`, `yuki-lock-preview` (Overlay). The generated
+`yuki-clipboard`, `yuki-settings`, `yuki-polkit`, `yuki-lock-preview` (Overlay). The generated
 niri.kdl places `yuki-backdrop` within niri's overview backdrop. Toasts and OSD
 are one window *per screen*, shown only on the focused output.
 

@@ -44,6 +44,7 @@ ShellRoot {
     SettingsWindow {}
     ClipboardPanel {}
     Osd {}
+    PolkitDialog {}
 
     // `qs -p <dir> ipc call launcher toggle`, etc.
     IpcHandler {
