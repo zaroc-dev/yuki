@@ -80,6 +80,8 @@ Singleton {
             // ---- power / idle ----
             property int lockAfterMinutes: 10
             property int screenOffAfterMinutes: 15
+            // Lock on any suspend (lid, `systemctl suspend`), not only yuki's own.
+            property bool lockBeforeSleep: true
 
             // ---- bar ----
             property bool clock24h: true

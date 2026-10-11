@@ -30,7 +30,7 @@ ShellRoot {
     ColorExtractor {}
 
     // Singletons are lazy; touch the ones that must run from the start.
-    readonly property var services: [Templates, Clipboard, Idle, Screenshots, Brightness, Osd]
+    readonly property var services: [Templates, Clipboard, Idle, Logind, Screenshots, Brightness, Osd]
 
     Variants {
         model: Quickshell.screens

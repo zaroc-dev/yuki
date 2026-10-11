@@ -66,7 +66,10 @@ the settings file.
 
 The power button opens tiles for **L**ock, **S**uspend, Log out (**E**), **R**estart
 and Shut down (**P**). Log out, restart and shut down need a second press within 4 s.
-Suspend locks first and suspends once every output is covered.
+Suspend locks first and suspends once every output is covered. So does any other
+suspend (lid, `systemctl suspend`): yuki holds a logind delay inhibitor until the
+lock screen is up ("Lock before sleep" in System settings). `loginctl lock-session`
+and `unlock-session` lock and unlock it too.
 
 The lock screen is a real `ext-session-lock`. Before locking, each bar snapshots
 its output in memory, so the lock blurs in from what was on screen and blurs back

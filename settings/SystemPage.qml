@@ -74,6 +74,17 @@ Page {
         title: "Power"
 
         SettingRow {
+            icon: Icons.sleep
+            label: "Lock before sleep"
+            description: "Also when suspend comes from the lid or another app"
+
+            Toggle {
+                checked: Settings.d.lockBeforeSleep
+                onToggled: v => Settings.d.lockBeforeSleep = v
+            }
+        }
+
+        SettingRow {
             icon: Icons.balanced
             label: "Power profile"
 
