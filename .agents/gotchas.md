@@ -21,6 +21,12 @@ elsewhere.
   children `Layout.fillWidth: true` too (Bluetooth header switch, settings ✕).
 - **Rows with only `Layout.preferredWidth` don't stretch** to a wider parent
   layout; add `Layout.fillWidth: true`. `BarPopup`'s body has a fixed width.
+- **Sizing a child from its own container's measured width hangs the shell.**
+  Positioner/`Row` widths update at polish, not in the binding, so QML reports
+  no binding loop: the width just oscillates every polish pass at 100% CPU and
+  the whole session's shell freezes (bar title budget, #27). Derive such budgets
+  from parts that don't depend on the child. Test layout math in a separate
+  instance (`qs -p <worktree>`) before saving into the live checkout.
 - **`PropertyAction { value: x }` inside an animation restarted from
   `onXChanged`** can apply the *previous* value (handler runs before the
   `value` binding updates). Use `ScriptAction { script: target.prop = x }`
