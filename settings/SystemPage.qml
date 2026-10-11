@@ -108,7 +108,7 @@ Page {
 
         SettingRow {
             label: `${Clipboard.entries.length} entries`
-            description: "Open with Mod+V (see HANDOFF.md) or the start menu"
+            description: "Open from the start menu, or bind `yuki ipc call clipboard toggle` (e.g. to Mod+V)"
 
             IconButton {
                 icon: Icons.trash

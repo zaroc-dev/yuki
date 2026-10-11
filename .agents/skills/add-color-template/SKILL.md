@@ -25,5 +25,5 @@ configs include/import it).
 5. **Validate** the generated file with the app's own parser if it has one
    (`niri validate`, `kitty +runpy load_config(...)`), and check it changes when
    `ipc call theme scheme vibrant` / `theme mode light` run (then restore).
-6. **Docs**: README "App colors" + tell the user which include line their
-   dotfiles need (`~/dotfiles/HANDOFF.md` style).
+6. **Docs**: README "App colors" (the include line for the new app) + tell the
+   user which line their dotfiles need.
