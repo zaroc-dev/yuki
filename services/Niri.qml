@@ -153,6 +153,19 @@ Singleton {
         case "WindowFocusChanged":
             focusedWindowId = data.id;
             break;
+        // Most-recently-used order for the window switcher.
+        case "WindowFocusTimestampChanged":
+            {
+                const win = windows[data.id];
+                if (!win)
+                    break;
+                const map = Object.assign({}, windows);
+                map[data.id] = Object.assign({}, win, {
+                    focus_timestamp: data.focus_timestamp
+                });
+                windows = map;
+                break;
+            }
         case "WindowUrgencyChanged":
             {
                 const win = windows[data.id];

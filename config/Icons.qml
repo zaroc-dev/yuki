@@ -29,6 +29,10 @@ Singleton {
     readonly property string eyeOff: "\u{f06d1}"
     readonly property string account: "\u{f0013}"
     readonly property string accountGroup: "\u{f0b58}"
+    readonly property string switcher: "\u{f04e1}"
+    readonly property string cards: "\u{f1486}"
+    readonly property string list: "\u{f0279}"
+    readonly property string island: "\u{f1513}"
 
     readonly property string settings: "\u{f08bb}"
     readonly property string sun: "\u{f05a8}"

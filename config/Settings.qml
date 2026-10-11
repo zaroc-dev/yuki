@@ -93,6 +93,10 @@ Singleton {
             property string preferredPlayer: ""
             property bool showActiveWindow: true
 
+            // ---- window switcher ----
+            // Look of the Alt+Tab switcher: cards | list | island
+            property string switcherStyle: "cards"
+
             // ---- notifications ----
             property bool dnd: false
             property real toastSeconds: 6

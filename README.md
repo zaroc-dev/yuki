@@ -23,6 +23,11 @@ daemon, with toasts in the top right of the focused output, and has an app launc
   the shell shows a toast with a thumbnail and Open / Show folder.
 - **OSD:** a volume/brightness pill on the focused screen for any change (keys, apps).
 - **Idle:** lock and screen-off timers, respecting apps that inhibit idle; "Awake" toggle.
+- **Window switcher:** Alt+Tab over the windows in most-recently-used order (Tab /
+  Shift+Tab / arrows, release Alt to switch, Esc cancels), in three looks to pick
+  from in Appearance: cards, list, or an island under the bar. App icons for now;
+  live previews wait on window capture in niri. Your niri binds take precedence over
+  niri's own switcher, so binding Alt+Tab (below) is all it needs.
 - **Power:** power-profiles-daemon picker (power menu, battery popup, settings).
 - **Polkit:** yuki is the authentication agent (pkexec, GNOME Disks, …): a centered
   dialog on the focused screen with the action, the identity (click to switch when
@@ -153,6 +158,8 @@ and in `keybinds.kdl`:
 Mod+Space   hotkey-overlay-title="App Launcher"  { spawn "yuki" "ipc" "call" "launcher" "toggle"; }
 Mod+N       hotkey-overlay-title="Notifications" { spawn "yuki" "ipc" "call" "bar" "toggle" "notifications"; }
 Super+Alt+L hotkey-overlay-title="Lock"          { spawn "yuki" "ipc" "call" "lock" "lock"; }
+Alt+Tab     hotkey-overlay-title="Switch Windows" { spawn "yuki" "ipc" "call" "switcher" "next"; }
+Alt+Shift+Tab                                    { spawn "yuki" "ipc" "call" "switcher" "prev"; }
 ```
 
 If another notification daemon is running, it owns `org.freedesktop.Notifications`
@@ -177,6 +184,7 @@ and yuki shows no toasts until it exits; then yuki takes the name over.
 ```sh
 yuki ipc show
 yuki ipc call launcher toggle|open|close
+yuki ipc call switcher next|prev|close · style cards|list|island
 yuki ipc call bar toggle media|calendar|notifications|network|volume|power
 yuki ipc call lock lock|preview|closePreview|isLocked
 yuki ipc call settings open [appearance|wallpaper|bar|notifications|start|about]
