@@ -9,6 +9,11 @@ BarButton {
     id: root
 
     readonly property var player: Media.active
+    // Room the bar gives the title (with its spacing); below a readable minimum
+    // only art and controls stay. Same no-feedback rule as ActiveWindow.
+    property real titleMax: 260 + spacing
+    readonly property real titleNatural: Math.min(title.implicitWidth, 260) + spacing
+    readonly property real fixedWidth: cover.width + controls.implicitWidth + spacing + hPadding * 2
 
     visible: player !== null && Settings.d.showMedia
     hPadding: 4
@@ -22,6 +27,8 @@ BarButton {
     }
 
     ClippingRectangle {
+        id: cover
+
         anchors.verticalCenter: parent.verticalCenter
         width: 24
         height: 24
@@ -51,7 +58,8 @@ BarButton {
         id: title
 
         anchors.verticalCenter: parent.verticalCenter
-        width: Math.min(implicitWidth, 260)
+        visible: root.titleMax - root.spacing >= 48
+        width: Math.min(implicitWidth, 260, root.titleMax - root.spacing)
         textFormat: Text.StyledText
         text: {
             const t = root.player?.trackTitle || Media.nameOf(root.player);
@@ -62,6 +70,8 @@ BarButton {
     }
 
     Row {
+        id: controls
+
         anchors.verticalCenter: parent.verticalCenter
         spacing: 0
 
@@ -101,7 +111,7 @@ BarButton {
         anchors.leftMargin: 36
         anchors.rightMargin: 82
         height: 2
-        visible: Media.hasLength(root.player)
+        visible: Media.hasLength(root.player) && title.visible
 
         Rectangle {
             anchors.fill: parent
