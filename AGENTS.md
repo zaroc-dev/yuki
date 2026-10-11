@@ -29,7 +29,7 @@ Read this file first. Deeper context lives in `.agents/`:
 - Generated app colors: `~/.local/state/yuki/theme/` (niri, kitty, GTK, colors.json).
 - The user's checkout is `~/source/shell` and usually runs live (hot reload);
   their dotfiles (`~/dotfiles`, NixOS flake, dendritic modules) consume this repo
-  as `github:zaroc-dev/yuki`. See `~/dotfiles/HANDOFF.md`.
+  as `github:zaroc-dev/yuki` (`modules/desktop/yuki.nix` there).
 
 ## Run / develop
 

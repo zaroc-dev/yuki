@@ -42,7 +42,7 @@ daemon, with toasts in the top right of the focused output, and has an app launc
   there are several admins) and a password field. If another agent already runs,
   yuki logs a warning and leaves it alone.
 - **App colors:** niri, kitty and GTK snippets in `~/.local/state/yuki/theme/`
-  (see `~/dotfiles/HANDOFF.md`), plus a blurred wallpaper for niri's overview backdrop.
+  (see [App colors](#app-colors)), plus a blurred wallpaper for niri's overview backdrop.
 
 ## Start menu & settings
 
@@ -229,6 +229,25 @@ watched, so editing it by hand restyles the shell live.
 
 `blur` uses niri's `ext-background-effect`. With it off, surfaces fall back to
 near-opaque.
+
+### App colors
+
+Whenever the palette changes, yuki writes color files to `~/.local/state/yuki/theme/`
+and nudges niri and kitty to reload. Include them from your configs (absolute paths):
+
+```kdl
+// niri config.kdl
+include optional=true "/home/you/.local/state/yuki/theme/niri.kdl"
+```
+
+```conf
+# kitty.conf
+include /home/you/.local/state/yuki/theme/kitty.conf
+```
+
+GTK 3/4 `gtk.css` are pointed at `gtk3.css` / `gtk4.css` by the home-manager module
+(`programs.yuki.gtk.enable`, on by default). `colors.json` has the full Material
+palette for anything else.
 
 ## Layout
 
