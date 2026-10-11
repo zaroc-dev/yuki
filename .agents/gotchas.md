@@ -71,6 +71,16 @@ elsewhere.
   on a running instance failed to resolve `qs.*` modules: restart instead.
 - Soft reloads reuse windows; stale layer surfaces can survive
   (`ipc call shell reload true` for a hard reload).
+- **Soft reload, then lock preview, crashed Qt** (segfault in
+  `QWaylandWindow::handleScreensChanged`, Qt 6.11.2): the reused windows get
+  screencopied right after the reload. Do a hard reload or wait before
+  `lock preview`. Quickshell restarts itself after a crash, but:
+  - the crashed generation's child processes (wl-paste, systemd-inhibit,
+    dbus-monitor) keep running: check `pgrep -P <qs pid> -a` for duplicates;
+  - the restart re-execs in the same PID and keeps the old system-bus
+    connection, so polkitd still sees the old agent and **polkit can't
+    re-register** until a full process restart;
+  - file watching (hot reload) stopped; use `ipc call shell reload`.
 - `WlSessionLock`: if the client dies while locked, niri stays locked by design.
   Test with `ipc call lock preview`.
 - Only one `org.freedesktop.Notifications` owner: another daemon (noctalia,

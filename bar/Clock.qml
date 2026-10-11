@@ -29,11 +29,11 @@ BarButton {
         color: Theme.subtext0
     }
 
-    CalendarPopup {
+    Dashboard {
         id: popup
 
-        name: "calendar"
+        name: "dashboard"
         target: root
-        today: clock.date
+        now: clock.date
     }
 }

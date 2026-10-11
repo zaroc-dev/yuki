@@ -84,7 +84,7 @@ ShellRoot {
     IpcHandler {
         target: "bar"
 
-        // Opens on the focused output: media | calendar | notifications | network | volume | power
+        // Opens on the focused output: media | dashboard | notifications | network | volume | power
         function toggle(name: string): void {
             Ui.popupRequested(name, Niri.focusedOutput);
         }

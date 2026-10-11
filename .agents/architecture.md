@@ -78,6 +78,10 @@ Import direction: `config` ← `services` ← `components` ← `bar`/`popups`/`s
   makes Alt+Tab arrive as keys and the Alt release commits. Looks are
   `popups/Switcher{Cards,List,Island}.qml` behind a `Loader`; each exposes
   `panel`, `panelRadius` and `dims` for the window's blur/dim.
+- **Weather**: Open-Meteo via `XMLHttpRequest` (geocoding for a city setting,
+  ipinfo.io when empty), cached with a `FileView` in the cache dir. Lazy: only
+  fetches once the dashboard or lock screen touches it. **SysStats** polls
+  `/proc` + `df` + hwmon only while `users > 0` (the open dashboard).
 - **Idle**: two `IdleMonitor`s (lock, screen off via niri `PowerOffMonitors`),
   `keepAwake` disables both.
 

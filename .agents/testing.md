@@ -23,7 +23,7 @@ nix build nixpkgs#grim nixpkgs#libnotify --out-link $S/tools   # grim in tools/,
    Harmless noise: `dropped operation`, `QObject::connect(QJSEngine…nullptr`,
    portal app-id warnings.
 2. Open things via IPC instead of clicking:
-   `qs -p . ipc call bar toggle <start|media|calendar|notifications|bluetooth|network|volume|battery|power>`,
+   `qs -p . ipc call bar toggle <start|media|dashboard|notifications|bluetooth|network|volume|battery|power>`,
    `ipc call settings open <page>`, `ipc call launcher toggle`,
    `ipc call clipboard toggle`, `ipc call lock preview` (+ `closePreview`).
 3. Screenshot a region, often zoomed:
