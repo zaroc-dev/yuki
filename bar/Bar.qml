@@ -10,6 +10,21 @@ PanelWindow {
 
     required property ShellScreen modelData
 
+    // Width left for the two elastic titles (media, active window) once every
+    // pill's fixed part fits; narrow (portrait) outputs would overlap otherwise.
+    // Summed from parts whose width doesn't depend on the titles: measuring the
+    // pills themselves feeds the result back and the layout never settles.
+    readonly property bool mediaShown: Media.active !== null && Settings.d.showMedia
+    readonly property real titleBudget: {
+        let centerFixed = Theme.padding * 2 + clock.implicitWidth + Theme.spacing * 2 + workspacesSep.implicitWidth + workspaces.implicitWidth;
+        if (activeWindow.shown)
+            centerFixed += Theme.spacing * 2 + windowSep.implicitWidth + activeWindow.fixedWidth;
+        const mediaFixed = mediaShown ? Theme.gap + Theme.padding * 2 + media.fixedWidth : 0;
+        return width - Theme.gap * 4 - left.naturalWidth - right.naturalWidth - centerFixed - mediaFixed;
+    }
+    // Fair split: each title gets half, or more if the other needs less.
+    readonly property real mediaTitleMax: mediaShown ? Math.min(media.titleNatural, Math.max(titleBudget / 2, titleBudget - (activeWindow.shown ? activeWindow.titleNatural : 0))) : 0
+
     screen: modelData
     anchors {
         top: true
@@ -107,29 +122,44 @@ PanelWindow {
         y: Theme.gap
         // Not media.visible: that reports effective visibility, which stays
         // false while this pill is hidden, so it could never reappear.
-        visible: Media.active !== null && Settings.d.showMedia
+        visible: root.mediaShown
         MediaWidget {
             id: media
+
+            titleMax: root.mediaTitleMax
         }
     }
 
     Pill {
         id: center
 
-        anchors.horizontalCenter: parent.horizontalCenter
+        readonly property real minX: (mediaPill.visible ? mediaPill.x + mediaPill.width : left.x + left.width) + Theme.gap
+        readonly property real maxX: right.x - Theme.gap - width
+
+        // Centered while there is room, else pushed into the gap between its neighbours.
+        x: Math.round(Math.max(minX, Math.min((parent.width - width) / 2, maxX)))
         y: Theme.gap
-        Clock {}
-        Separator {}
+        Clock {
+            id: clock
+        }
+        Separator {
+            id: workspacesSep
+        }
         Workspaces {
+            id: workspaces
+
             output: root.modelData.name
         }
         Separator {
+            id: windowSep
+
             visible: activeWindow.visible
         }
         ActiveWindow {
             id: activeWindow
 
             output: root.modelData.name
+            titleMax: root.titleBudget - root.mediaTitleMax
         }
     }
 

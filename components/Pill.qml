@@ -7,8 +7,10 @@ Rectangle {
 
     default property alias content: row.data
     property alias spacing: row.spacing
+    // Target width without the resize animation, for layout math.
+    readonly property real naturalWidth: row.implicitWidth + Theme.padding * 2
 
-    implicitWidth: row.implicitWidth + Theme.padding * 2
+    implicitWidth: naturalWidth
     implicitHeight: Theme.barHeight
     radius: Theme.radius
     color: Theme.barBg
