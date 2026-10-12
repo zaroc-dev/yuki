@@ -27,6 +27,7 @@
 | dropdown | `BarPopup { name; target }` + `Layout.fillWidth` header rows |
 | switch / choice | `Toggle`, `Segmented { options: [{value,label,icon}] }` |
 | slider | `StyledSlider` (`onMoved: v => …`) |
+| text input | `TextField { placeholder; icon; password }` (`accepted`/`cancelled`; Escape doesn't close the popup) |
 | settings row | `SettingRow { label; description; icon/appIcon; <control> }` inside `Section` inside `Page` |
 | notification | `Notifs.notify({ summary, body, image, actions: [{ text, run }] })` |
 

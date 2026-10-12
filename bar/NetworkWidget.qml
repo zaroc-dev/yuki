@@ -19,6 +19,16 @@ BarButton {
         color: Net.connected ? Theme.text : Theme.overlay1
     }
 
+    // Shield while a VPN is up.
+    Icon {
+        anchors.verticalCenter: parent.verticalCenter
+        visible: Vpn.active.length > 0
+        leftPadding: 3
+        text: Icons.vpn
+        size: Theme.iconSize - 3
+        color: Theme.accent
+    }
+
     // Interface (or Wi-Fi network) name slides out on hover.
     Item {
         anchors.verticalCenter: parent.verticalCenter

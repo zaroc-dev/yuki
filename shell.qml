@@ -109,6 +109,31 @@ ShellRoot {
     }
 
     IpcHandler {
+        target: "vpn"
+
+        // name: a connection name (case-insensitive), or "" for the first one
+        // (Mullvad when installed).
+        function toggle(name: string): void {
+            const c = name ? Vpn.find(name) : Vpn.connections[0];
+            if (c)
+                Vpn.toggle(c.id);
+        }
+        function on(name: string): void {
+            const c = name ? Vpn.find(name) : Vpn.connections[0];
+            if (c)
+                Vpn.setActive(c.id, true);
+        }
+        function off(name: string): void {
+            const c = name ? Vpn.find(name) : Vpn.connections[0];
+            if (c)
+                Vpn.setActive(c.id, false);
+        }
+        function status(): string {
+            return Vpn.connections.map(c => `${c.name}: ${c.state}`).join("\n");
+        }
+    }
+
+    IpcHandler {
         target: "power"
 
         // lock | suspend | logout | reboot | poweroff

@@ -8,13 +8,102 @@ import qs.services
 BarPopup {
     id: root
 
-    property var pskTarget: null
+    // Wi-Fi network whose join form is open, "add" for "Add network", or null.
+    property var joinTarget: null
 
     onVisibleChanged: {
         if (Net.wifiDevice)
             Net.wifiDevice.scannerEnabled = visible;
-        if (!visible)
-            pskTarget = null;
+        if (visible)
+            Vpn.refresh();
+        else
+            joinTarget = null;
+    }
+
+    component SectionLabel: StyledText {
+        Layout.topMargin: 2
+        font.pixelSize: Theme.smallFontSize
+        font.weight: Font.DemiBold
+        font.letterSpacing: 0.6
+        color: Theme.overlay2
+    }
+
+    component VpnRow: MouseArea {
+        id: vrow
+
+        required property var modelData
+        readonly property bool on: modelData.state === "on"
+        readonly property bool busy: modelData.state === "connecting" || modelData.state === "disconnecting"
+        readonly property string error: Vpn.errors[modelData.id] ?? ""
+
+        Layout.fillWidth: true
+        implicitHeight: 44
+        hoverEnabled: true
+        cursorShape: Qt.PointingHandCursor
+        onClicked: Vpn.toggle(modelData.id)
+
+        Rectangle {
+            anchors.fill: parent
+            radius: Theme.innerRadius
+            color: vrow.on ? Qt.alpha(Theme.accent, 0.15) : vrow.containsMouse ? Theme.hover : "transparent"
+
+            Behavior on color {
+                ColorAnimation {
+                    duration: Theme.anim
+                }
+            }
+        }
+
+        RowLayout {
+            anchors.fill: parent
+            anchors.leftMargin: 10
+            anchors.rightMargin: 10
+            spacing: 10
+
+            Icon {
+                text: Icons.vpn
+                color: vrow.on ? Theme.accent : vrow.modelData.state === "error" ? Theme.red : Theme.text
+            }
+
+            ColumnLayout {
+                Layout.fillWidth: true
+                spacing: 0
+
+                StyledText {
+                    Layout.fillWidth: true
+                    text: vrow.modelData.name
+                    color: vrow.on ? Theme.accent : Theme.text
+                }
+
+                StyledText {
+                    Layout.fillWidth: true
+                    text: vrow.error || vrow.modelData.detail
+                    font.pixelSize: Theme.smallFontSize
+                    color: vrow.error || vrow.modelData.state === "error" ? Theme.red : Theme.subtext0
+                }
+            }
+
+            Icon {
+                id: vspin
+
+                visible: vrow.busy
+                text: Icons.loading
+                color: Theme.accent
+
+                RotationAnimation on rotation {
+                    running: vspin.visible
+                    loops: Animation.Infinite
+                    from: 0
+                    to: 360
+                    duration: 900
+                }
+            }
+
+            Toggle {
+                checked: vrow.on || vrow.modelData.state === "connecting"
+                onToggled: v => Vpn.setActive(vrow.modelData.id, v)
+            }
+        }
     }
 
     RowLayout {
@@ -112,6 +201,17 @@ BarPopup {
         }
     }
 
+    SectionLabel {
+        visible: Vpn.connections.length > 0
+        text: "VPN"
+    }
+
+    Repeater {
+        model: Vpn.connections
+
+        VpnRow {}
+    }
+
     Rectangle {
         Layout.fillWidth: true
         implicitHeight: 1
@@ -133,10 +233,18 @@ BarPopup {
             id: net
 
             required property var modelData
-            readonly property bool asking: root.pskTarget === modelData
+            readonly property bool joining: root.joinTarget === modelData
+            // Forget takes a second click, like Bluetooth devices.
+            property bool armed: false
 
             Layout.fillWidth: true
             spacing: 4
+
+            Timer {
+                running: net.armed
+                interval: 4000
+                onTriggered: net.armed = false
+            }
 
             MouseArea {
                 id: row
@@ -152,19 +260,19 @@ BarPopup {
                     else if (n.known || !Net.isSecure(n))
                         n.connect();
                     else
-                        root.pskTarget = net.asking ? null : n;
+                        root.joinTarget = net.joining ? null : n;
                 }
 
                 Rectangle {
                     anchors.fill: parent
                     radius: Theme.innerRadius
-                    color: net.modelData.connected ? Qt.alpha(Theme.accent, 0.15) : row.containsMouse ? Theme.hover : "transparent"
+                    color: net.modelData.connected ? Qt.alpha(Theme.accent, 0.15) : row.containsMouse || net.joining ? Theme.hover : "transparent"
                 }
 
                 RowLayout {
                     anchors.fill: parent
                     anchors.leftMargin: 10
-                    anchors.rightMargin: 10
+                    anchors.rightMargin: 4
                     spacing: 10
 
                     Icon {
@@ -174,8 +282,8 @@ BarPopup {
 
                     StyledText {
                         Layout.fillWidth: true
-                        text: net.modelData.name
-                        color: net.modelData.connected ? Theme.accent : Theme.text
+                        text: net.armed ? "Click again to forget" : net.modelData.name
+                        color: net.armed ? Theme.red : net.modelData.connected ? Theme.accent : Theme.text
                     }
 
                     StyledText {
@@ -186,48 +294,89 @@ BarPopup {
 
                     Icon {
                         visible: Net.isSecure(net.modelData)
-                        text: Icons.lock
+                        text: Net.isEnterprise(net.modelData) ? Icons.shieldLock : Icons.lock
                         size: 13
                         color: Theme.overlay1
                     }
+
+                    IconButton {
+                        visible: net.modelData.known
+                        size: 28
+                        iconSize: 15
+                        icon: Icons.trash
+                        color: net.armed ? Theme.red : Theme.overlay1
+                        onClicked: {
+                            if (!net.armed) {
+                                net.armed = true;
+                                return;
+                            }
+                            net.armed = false;
+                            net.modelData.forget();
+                        }
+                    }
+
+                    Item {
+                        visible: !net.modelData.known
+                        implicitWidth: 6
+                    }
                 }
             }
 
-            // Password prompt for unknown secured networks.
-            Rectangle {
+            Loader {
                 Layout.fillWidth: true
-                visible: net.asking
-                implicitHeight: 34
-                radius: Theme.innerRadius
-                color: Theme.surface0
-                border.width: 1
-                border.color: psk.activeFocus ? Theme.accent : "transparent"
+                active: net.joining
+                visible: active
 
-                TextInput {
-                    id: psk
-
-                    anchors.fill: parent
-                    anchors.leftMargin: 10
-                    anchors.rightMargin: 10
-                    verticalAlignment: TextInput.AlignVCenter
-                    echoMode: TextInput.Password
-                    color: Theme.text
-                    font.family: Theme.font
-                    font.pixelSize: Theme.fontSize
-                    focus: net.asking
-                    onVisibleChanged: if (visible) forceActiveFocus()
-                    onAccepted: {
-                        net.modelData.connectWithPsk(text);
-                        root.pskTarget = null;
-                    }
-
-                    StyledText {
-                        visible: !psk.text
-                        text: "Password"
-                        color: Theme.overlay0
-                    }
+                sourceComponent: WifiJoinForm {
+                    network: net.modelData
+                    onFinished: root.joinTarget = null
                 }
             }
+        }
+    }
+
+    // Hidden networks, or anything that needs settings up front.
+    MouseArea {
+        id: addRow
+
+        Layout.fillWidth: true
+        visible: Net.hasWifi && Networking.wifiEnabled
+        implicitHeight: 32
+        hoverEnabled: true
+        cursorShape: Qt.PointingHandCursor
+        onClicked: root.joinTarget = root.joinTarget === "add" ? null : "add"
+
+        Rectangle {
+            anchors.fill: parent
+            radius: Theme.innerRadius
+            color: addRow.containsMouse ? Theme.hover : "transparent"
+        }
+
+        RowLayout {
+            anchors.fill: parent
+            anchors.leftMargin: 10
+            spacing: 10
+
+            Icon {
+                text: Icons.plus
+                color: Theme.subtext0
+            }
+
+            StyledText {
+                Layout.fillWidth: true
+                text: "Add network…"
+                color: Theme.subtext0
+            }
+        }
+    }
+
+    Loader {
+        Layout.fillWidth: true
+        active: root.joinTarget === "add"
+        visible: active
+
+        sourceComponent: WifiJoinForm {
+            onFinished: root.joinTarget = null
         }
     }
 

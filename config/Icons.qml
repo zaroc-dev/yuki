@@ -141,6 +141,11 @@ Singleton {
     readonly property string ethernet: "\u{f0200}"
     readonly property string networkOff: "\u{f0c9b}"
     readonly property string wifiOff: "\u{f092e}"
+    readonly property string vpn: "\u{f0582}"
+    readonly property string web: "\u{f059f}"
+    readonly property string certificate: "\u{f1188}"
+    readonly property string plus: "\u{f0415}"
+    readonly property string chevronDown: "\u{f0140}"
     readonly property string lock: "\u{f033e}"
     readonly property var wifiStrength: ["\u{f092f}", "\u{f091f}", "\u{f0922}", "\u{f0925}", "\u{f0928}"]
 

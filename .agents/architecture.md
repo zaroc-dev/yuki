@@ -7,10 +7,10 @@ shell.qml        root ShellRoot: Backdrop/Wallpaper per screen, ColorExtractor, 
                  screen, NotificationToasts, Launcher, LockScreen, SettingsWindow,
                  ClipboardPanel, Osd, all IpcHandlers; touches lazy singletons
 config/          Settings (persisted JSON), Theme (palette), Wallpapers, Icons   ← no deps on services
-services/        singletons: Niri, Apps, Audio, Media, Net, Notifs, Lock, Power, Ui,
+services/        singletons: Niri, Apps, Audio, Media, Net, Vpn, Notifs, Lock, Power, Ui,
                  Templates, Clipboard, Screenshots, Osd, Brightness, Idle
 components/      reusable UI: Pill, BarButton, BarPopup, IconButton, Icon, StyledText,
-                 StyledSlider, Toggle, Segmented, AppIcon, Avatar, NotificationCard, …
+                 StyledSlider, Toggle, Segmented, TextField, AppIcon, Avatar, NotificationCard, …
 bar/             Bar.qml (one PanelWindow per screen) + one file per widget
 popups/          BarPopup-based dropdowns + overlay windows (Launcher, ClipboardPanel,
                  NotificationToasts, Osd)
@@ -66,6 +66,15 @@ Import direction: `config` ← `services` ← `components` ← `bar`/`popups`/`s
   `secure` (used for suspend). While locked, `$XDG_RUNTIME_DIR/yuki-locked`
   holds the session key (`NIRI_SOCKET`); a shell that starts and finds it
   matching locks again (crash failsafe).
+- **Net**: `Quickshell.Networking` wrappers. `join(ssid, settings, secret)`
+  covers what the API can't (802.1X, hidden SSIDs): `nmcli connection add`,
+  then the secret through stdin into `nmcli connection edit` (never argv:
+  Quickshell logs failed commands), then `up`; deletes the profile on failure.
+  Used by `popups/WifiJoinForm.qml`.
+- **Vpn**: Mullvad via `mullvad status --json listen` + `mullvad connect|disconnect`
+  (its tunnel isn't an NM connection), NM `wireguard`/`vpn` profiles via nmcli
+  (refreshed on `nmcli monitor`; active profiles on "connected (externally)"
+  devices are skipped). `connections` is one list for both.
 - **Templates**: debounced on palette change; writes niri/kitty/GTK/JSON into
   `~/.local/state/yuki/theme/`, then `niri msg action load-config-file` and
   `pkill -USR1` kitty.
