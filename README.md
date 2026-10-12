@@ -9,7 +9,7 @@ A Quickshell desktop shell for niri: three floating, frosted pills along the top
 | right  | tray · notifications · bluetooth, network (name on hover), volume, battery · power |
 
 Every widget has a popup: media controls + seek + player switcher, a dashboard,
-a notification center (with do-not-disturb), the network (wired/Wi-Fi list with a password prompt),
+a notification center (with do-not-disturb), the network (wired, VPN and Wi-Fi; see below),
 and audio (output/input sliders and device pickers). The shell is also the notification
 daemon, with toasts in the top right of the focused output, and has an app launcher.
 
@@ -17,6 +17,10 @@ daemon, with toasts in the top right of the focused output, and has an app launc
 
   device battery, disconnect and forget buttons (forget asks for a second click).
   device battery, forget (right-click).
+- **Network:** Wi-Fi join form with password reveal and inline errors, enterprise
+  (802.1X: PEAP/TTLS, identity, domain, CA) and hidden networks ("Add network…"),
+  forget for saved networks. VPN on/off for Mullvad (its CLI) and NetworkManager
+  VPN/WireGuard profiles, with a shield on the bar icon while one is up.
 - **Clipboard:** history via cliphist (the shell runs the `wl-paste --watch` recorders),
   a searchable panel with image thumbnails, Enter copies, Del removes.
 - **Screenshots:** niri's own tools (region/screen/window from the start menu or IPC);
@@ -198,6 +202,7 @@ yuki ipc call launcher toggle|open|close
 yuki ipc call switcher next|prev|close · style cards|list|island
 yuki ipc call bar toggle media|dashboard|notifications|network|volume|power
 yuki ipc call lock lock|preview|closePreview|isLocked
+yuki ipc call vpn toggle|on|off <name or ""> · status
 yuki ipc call settings open [appearance|wallpaper|bar|notifications|start|about]
 yuki ipc call wallpaper set <output|all> <path>
 yuki ipc call wallpaper random <output> · shuffle · get <output>
