@@ -107,11 +107,14 @@ Singleton {
         }
     }
 
-    // Holds the delay lock until killed (systemd-inhibit takes `sleep` down with it).
+    // Holds the delay lock until killed (systemd-inhibit takes `cat` down with
+    // it), or until yuki goes away: `cat` exits when its stdin pipe closes, so a
+    // crash or relaunch can't leave an orphan delaying every suspend.
     Process {
         id: inhibitor
 
-        command: ["systemd-inhibit", "--what=sleep", "--mode=delay", "--who=yuki", "--why=Lock the screen before sleep", "sleep", "infinity"]
+        command: ["systemd-inhibit", "--what=sleep", "--mode=delay", "--who=yuki", "--why=Lock the screen before sleep", "cat"]
+        stdinEnabled: true
         onExited: {
             if (Settings.d.lockBeforeSleep && !root.sleeping)
                 restartTimer.restart();
