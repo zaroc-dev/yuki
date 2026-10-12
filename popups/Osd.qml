@@ -26,9 +26,20 @@ Variants {
         mask: Region {}
         WlrLayershell.layer: WlrLayer.Overlay
         WlrLayershell.namespace: "yuki-osd"
-        BackgroundEffect.blurRegion: Region {
-            item: Theme.blur ? pill : null
-            radius: pill.radius
+        // Off while hiding: blur can't fade, so it would linger as a bright
+        // ghost behind the fading pill.
+        BackgroundEffect.blurRegion: Theme.blur && Osd.shown ? blurRegion : null
+
+        // Follows the pill's scale by hand: an `item:` region ignores the
+        // transform and stayed at the 0.92 start size, short of the pill's ends.
+        Region {
+            id: blurRegion
+
+            width: pill.width * pill.scale
+            height: pill.height * pill.scale
+            x: (win.width - width) / 2
+            y: (win.height - height) / 2
+            radius: height / 2
         }
 
         Rectangle {

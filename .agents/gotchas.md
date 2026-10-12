@@ -65,6 +65,10 @@ elsewhere.
 - **Moving a window between outputs** (changing `screen`) recreates its surface
   and drops `BackgroundEffect` blur. Use one window per screen and toggle
   `visible` (toasts, OSD).
+- **`Region { item: x }` ignores `x.scale`** and keeps the geometry from when
+  it was set, so a blur region on a scale-animated item ends short of it. Bind
+  `x`/`y`/`width`/`height` from the scale instead (see `popups/Osd.qml`). Blur
+  can't fade either: drop the region while fading out, or it lingers as a ghost.
 - **ShellId**: without `//@ pragma ShellId yuki` the state dir is derived from
   the config *path*: store builds would get empty settings. Pragmas only apply
   at process start (restart, not reload). The first reload after changing it
