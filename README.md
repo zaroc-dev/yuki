@@ -15,7 +15,7 @@ daemon, with toasts in the top right of the focused output, and has an app launc
 
 ## Desktop services
 
-- **Bluetooth:** adapter toggle, scan, pair (auto trust + connect), connect/disconnect,
+  device battery, disconnect and forget buttons (forget asks for a second click).
   device battery, forget (right-click).
 - **Clipboard:** history via cliphist (the shell runs the `wl-paste --watch` recorders),
   a searchable panel with image thumbnails, Enter copies, Del removes.

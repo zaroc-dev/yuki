@@ -35,24 +35,26 @@ BarPopup {
         required property var modelData
         readonly property var dev: modelData
         readonly property bool busy: dev.state === BluetoothDeviceState.Connecting || dev.state === BluetoothDeviceState.Disconnecting || dev.pairing
+        // Forget takes a second click, like the power buttons on the lock screen.
+        property bool armed: false
 
         Layout.fillWidth: true
         implicitHeight: 48
         hoverEnabled: true
-        acceptedButtons: Qt.LeftButton | Qt.RightButton
         cursorShape: Qt.PointingHandCursor
-        onClicked: e => {
-            if (e.button === Qt.RightButton) {
-                if (dev.paired)
-                    dev.forget();
-                return;
-            }
+        onClicked: {
             if (dev.connected)
                 dev.disconnect();
             else if (dev.paired)
                 dev.connect();
             else
                 dev.pair();
+        }
+
+        Timer {
+            running: row.armed
+            interval: 4000
+            onTriggered: row.armed = false
         }
 
         // Once paired, trust and connect right away.
@@ -112,8 +114,10 @@ BarPopup {
                 StyledText {
                     Layout.fillWidth: true
                     font.pixelSize: Theme.smallFontSize
-                    color: Theme.subtext0
+                    color: row.armed ? Theme.red : Theme.subtext0
                     text: {
+                        if (row.armed)
+                            return "Click again to forget";
                         if (row.dev.pairing)
                             return "Pairing…";
                         if (row.dev.state === BluetoothDeviceState.Connecting)
@@ -125,6 +129,38 @@ BarPopup {
                         return row.dev.paired ? "Paired · click to connect" : "Click to pair";
                     }
                 }
+            }
+
+            IconButton {
+                visible: row.dev.connected && !row.busy
+                size: 28
+                icon: Icons.linkOff
+                color: Theme.subtext0
+                onClicked: row.dev.disconnect()
+            }
+
+            // Also clears stale pairings (forget disconnects first).
+            IconButton {
+                visible: row.dev.paired && !row.dev.pairing
+                size: 28
+                icon: Icons.trash
+                color: row.armed ? Theme.red : Theme.subtext0
+                onClicked: {
+                    if (!row.armed) {
+                        row.armed = true;
+                        return;
+                    }
+                    row.armed = false;
+                    row.dev.forget();
+                }
+            }
+
+            IconButton {
+                visible: row.dev.pairing
+                size: 28
+                icon: Icons.close
+                color: Theme.subtext0
+                onClicked: row.dev.cancelPair()
             }
 
             Icon {
@@ -236,15 +272,6 @@ BarPopup {
         model: root.on && root.adapter?.discovering ? root.nearby : []
 
         DeviceRow {}
-    }
-
-    StyledText {
-        Layout.fillWidth: true
-        visible: root.on
-        text: "Right-click a paired device to forget it"
-        font.pixelSize: Theme.smallFontSize
-        color: Theme.overlay0
-        horizontalAlignment: Text.AlignHCenter
     }
 }
 

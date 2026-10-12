@@ -80,6 +80,7 @@ Singleton {
     readonly property string bluetooth: "\u{f00af}"
     readonly property string bluetoothOff: "\u{f00b2}"
     readonly property string bluetoothConnected: "\u{f00b1}"
+    readonly property string linkOff: "\u{f0338}"
     readonly property string scan: "\u{f1276}"
     readonly property string clipboard: "\u{f0a38}"
     readonly property string copy: "\u{f018f}"
