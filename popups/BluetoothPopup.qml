@@ -12,9 +12,20 @@ BarPopup {
     readonly property bool on: adapter?.enabled ?? false
     readonly property var devices: Bluetooth.devices.values.filter(d => d.adapter === adapter)
     readonly property var connected: devices.filter(d => d.connected)
-    readonly property var paired: devices.filter(d => d.paired && !d.connected)
-    // Unpaired devices with a real name (skip bare MAC addresses).
-    readonly property var nearby: devices.filter(d => !d.paired && d.name && d.name.replace(/-/g, ":") !== d.address)
+    // Trusted but unpaired = paired here before and the pairing got lost; keep
+    // it listed so it can be paired again or forgotten.
+    readonly property var paired: devices.filter(d => (d.paired || d.trusted) && !d.connected)
+    // Unknown devices with a real name (skip bare MAC addresses).
+    readonly property var nearby: devices.filter(d => !d.paired && !d.trusted && d.name && d.name.replace(/-/g, ":") !== d.address)
+
+    // BlueZ only bonds (stores the link keys) while the adapter is pairable, and
+    // with no pairing agent registered it keeps switching that off. An unbonded
+    // pairing is dropped on disconnect, so the device can't reconnect.
+    function pair(dev) {
+        if (adapter && !adapter.pairable)
+            adapter.pairable = true;
+        dev.pair();
+    }
 
     onVisibleChanged: {
         if (!visible && adapter?.discovering)
@@ -48,7 +59,7 @@ BarPopup {
             else if (dev.paired)
                 dev.connect();
             else
-                dev.pair();
+                root.pair(dev);
         }
 
         Timer {
@@ -64,7 +75,9 @@ BarPopup {
             function onPairedChanged(): void {
                 if (row.dev.paired) {
                     row.dev.trusted = true;
-                    row.dev.connect();
+                    // Headphones often connect on their own once paired.
+                    if (!row.dev.connected)
+                        row.dev.connect();
                 }
             }
         }
@@ -126,7 +139,9 @@ BarPopup {
                             return "Disconnecting…";
                         if (row.dev.connected)
                             return row.dev.batteryAvailable ? `Connected · ${Math.round(row.dev.battery * 100)}% battery` : "Connected";
-                        return row.dev.paired ? "Paired · click to connect" : "Click to pair";
+                        if (row.dev.paired)
+                            return "Paired · click to connect";
+                        return row.dev.trusted ? "Pairing lost · click to pair again" : "Click to pair";
                     }
                 }
             }
@@ -141,7 +156,7 @@ BarPopup {
 
             // Also clears stale pairings (forget disconnects first).
             IconButton {
-                visible: row.dev.paired && !row.dev.pairing
+                visible: (row.dev.paired || row.dev.trusted) && !row.dev.pairing
                 size: 28
                 icon: Icons.trash
                 color: row.armed ? Theme.red : Theme.subtext0
