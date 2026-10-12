@@ -95,6 +95,9 @@ elsewhere.
   `surface_enter` / `oldestEnteredScreen` (quickshell#1094, fix in PR #1095).
   The lock screen used to snapshot outputs this way; it uses the wallpaper now
   (restoring it is tracked in #38).
+- Child processes outlive a Quickshell crash/relaunch unless they notice their
+  pipes closing (the relaunch keeps the PID). `Logind`'s inhibitor runs `cat`
+  on stdin so it exits with the shell instead of delaying every suspend by 5s.
 - niri sends its own "Screenshot captured" notification; `Notifs` expires it.
 - kitty's `globinclude` rejects absolute patterns; use `include /abs/path`
   (missing file = warning only). niri: `include optional=true "/abs/path"`.
