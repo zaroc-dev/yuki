@@ -60,10 +60,12 @@ Import direction: `config` ← `services` ← `components` ← `bar`/`popups`/`s
   `list` = center. `notify(opts)` creates *internal* notifications with the
   same shape (used for screenshots). niri's own screenshot notification is
   expired in favor of ours.
-- **Lock**: `lock()` → bars snapshot their output (`ScreencopyView` →
-  `grabToImage`, in memory) → `locked = true` → `WlSessionLock`. PAM via
-  `pam/password.conf`. `preview` shows the same UI in overlay windows without
-  locking. `lockThen(fn)` runs after `secure` (used for suspend).
+- **Lock**: `lock()` → `locked = true` → `WlSessionLock`; each surface blurs
+  in from its output's wallpaper. PAM via `pam/password.conf`. `preview` shows
+  the same UI in overlay windows without locking. `lockThen(fn)` runs after
+  `secure` (used for suspend). While locked, `$XDG_RUNTIME_DIR/yuki-locked`
+  holds the session key (`NIRI_SOCKET`); a shell that starts and finds it
+  matching locks again (crash failsafe).
 - **Templates**: debounced on palette change; writes niri/kitty/GTK/JSON into
   `~/.local/state/yuki/theme/`, then `niri msg action load-config-file` and
   `pkill -USR1` kitty.

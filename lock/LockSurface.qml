@@ -13,9 +13,9 @@ Item {
 
     required property string screenName
     property bool preview: false
-    // 0 = the crisp desktop snapshot, 1 = fully locked look. Drives enter and exit.
+    // 0 = the crisp wallpaper, 1 = fully locked look. Drives enter and exit.
     property real phase: 0
-    readonly property var snapshot: Lock.snapshots[screenName] ?? null
+    readonly property string wallpaper: Wallpapers.pathFor(screenName)
     readonly property bool busy: Lock.state === "busy"
     readonly property bool bad: Lock.state === "failed" || Lock.state === "error"
     property string armed: ""
@@ -71,10 +71,10 @@ Item {
 
     // ---------- background ----------
 
-    // Used when there is no snapshot: theme gradient with two soft color blobs.
+    // Used when there is no wallpaper: theme gradient with two soft color blobs.
     Rectangle {
         anchors.fill: parent
-        visible: snap.status !== Image.Ready
+        visible: wall.status !== Image.Ready
         gradient: Gradient {
             GradientStop {
                 position: 0
@@ -121,19 +121,21 @@ Item {
         }
     }
 
+    // Half resolution is plenty, it gets blurred anyway.
     Image {
-        id: snap
+        id: wall
 
         anchors.fill: parent
-        source: root.snapshot?.url ?? ""
+        source: root.wallpaper ? "file://" + root.wallpaper : ""
+        sourceSize: Qt.size(root.width / 2, root.height / 2)
         fillMode: Image.PreserveAspectCrop
         visible: false
     }
 
     MultiEffect {
         anchors.fill: parent
-        visible: snap.status === Image.Ready
-        source: snap
+        visible: wall.status === Image.Ready
+        source: wall
         autoPaddingEnabled: false
         blurEnabled: true
         blurMax: 64

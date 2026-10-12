@@ -2,10 +2,10 @@ pragma Singleton
 
 import QtQuick
 import Quickshell
+import Quickshell.Io
 import Quickshell.Services.Pam
 
-// Lock screen state. Locking first snapshots every screen (the bars do the
-// capture), so the lock surface can blur in from what was on screen.
+// Lock screen state. The lock surface blurs in from each output's wallpaper.
 Singleton {
     id: root
 
@@ -25,21 +25,24 @@ Singleton {
     property string message: ""
     property int attempts: 0
 
-    // screen name -> ItemGrabResult (kept alive so its url stays valid)
-    property var snapshots: ({})
-    property bool capturing: false
-    property string pendingMode: ""
     property var afterLock: []
+    // Identifies this compositor session (niri's socket path contains its pid).
+    readonly property string sessionKey: Quickshell.env("NIRI_SOCKET") || Quickshell.env("WAYLAND_DISPLAY") || ""
 
-    signal captureRequested
     signal rejected
 
     function lock() {
-        begin("lock");
+        if (shown)
+            return;
+        reset();
+        locked = true;
     }
 
     function showPreview() {
-        begin("preview");
+        if (shown)
+            return;
+        reset();
+        preview = true;
     }
 
     // Lock, then run fn once every output is covered (e.g. suspend).
@@ -50,36 +53,6 @@ Singleton {
         }
         afterLock = [...afterLock, fn];
         lock();
-    }
-
-    function begin(mode) {
-        if (shown || capturing)
-            return;
-        reset();
-        snapshots = {};
-        pendingMode = mode;
-        capturing = true;
-        captureTimeout.restart();
-        captureRequested();
-    }
-
-    function snapshotReady(screenName, result) {
-        if (!capturing)
-            return;
-        const s = Object.assign({}, snapshots);
-        s[screenName] = result;
-        snapshots = s;
-        if (Quickshell.screens.every(sc => sc.name in snapshots))
-            finishCapture();
-    }
-
-    function finishCapture() {
-        captureTimeout.stop();
-        capturing = false;
-        if (pendingMode === "lock")
-            locked = true;
-        else
-            preview = true;
     }
 
     function reset() {
@@ -114,6 +87,21 @@ Singleton {
             unlock();
     }
 
+    // Failsafe: if the shell dies while locked, the marker is still there and
+    // the restarted shell locks again. It lives in the runtime dir and holds
+    // the session key, so a new login or boot never starts locked.
+    onLockedChanged: {
+        if (marker.path)
+            marker.setText(locked ? sessionKey : "");
+    }
+
+    Component.onCompleted: {
+        if (sessionKey && marker.path && marker.text().trim() === sessionKey) {
+            console.warn("Lock: the shell stopped while locked, locking again");
+            lock();
+        }
+    }
+
     onSecureChanged: {
         if (!secure)
             return;
@@ -121,14 +109,6 @@ Singleton {
         afterLock = [];
         for (const fn of fns)
             fn();
-    }
-
-    // Don't hang forever if a screen never delivers a frame.
-    Timer {
-        id: captureTimeout
-
-        interval: 800
-        onTriggered: root.finishCapture()
     }
 
     // Matches the exit animation in LockSurface.
@@ -141,8 +121,18 @@ Singleton {
             root.preview = false;
             root.unlocking = false;
             root.password = "";
-            root.snapshots = {};
         }
+    }
+
+    FileView {
+        id: marker
+
+        path: Quickshell.env("XDG_RUNTIME_DIR") ? Quickshell.env("XDG_RUNTIME_DIR") + "/yuki-locked" : ""
+        blockLoading: true
+        // On disk before the lock goes up, in case the shell dies right after.
+        blockWrites: true
+        printErrors: false
+        atomicWrites: true
     }
 
     PamContext {
