@@ -91,9 +91,9 @@ suspend (lid, `systemctl suspend`): yuki holds a logind delay inhibitor until th
 lock screen is up ("Lock before sleep" in System settings). `loginctl lock-session`
 and `unlock-session` lock and unlock it too.
 
-The lock screen is a real `ext-session-lock`. Before locking, each bar snapshots
-its output in memory, so the lock blurs in from what was on screen and blurs back
-out on unlock. It shows a clock, your avatar (`~/.face.icon`), and a password
+The lock screen is a real `ext-session-lock`. Each output's wallpaper blurs in
+when it locks and back out on unlock. If the shell crashes while locked, it locks
+again as soon as it restarts. It shows a clock, your avatar (`~/.face.icon`), and a password
 field authenticated through PAM (`pam/password.conf`, plain `pam_unix`). Also:
 now-playing controls, the niri keyboard layout, and suspend/restart/shut down.
 

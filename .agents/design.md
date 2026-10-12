@@ -41,7 +41,7 @@ that: calm, frosted, rounded, accent-driven.
 - Popups: fade + 8px slide in, 130ms fade out; size changes glide (240ms).
 - Accordions animate height + opacity; lists use ScriptModel add/remove/displaced
   transitions. Nothing should jump.
-- Lock/login: desktop snapshot blurs/dims/zooms in over ~550ms, reverse on unlock.
+- Lock/login: wallpaper blurs/dims/zooms in over ~550ms, reverse on unlock.
 
 ## Interaction patterns
 

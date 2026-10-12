@@ -75,25 +75,6 @@ PanelWindow {
         }
     }
 
-    // Snapshot of this output for the lock screen background. Rendered
-    // invisibly and grabbed at half resolution (it gets blurred anyway).
-    Loader {
-        active: Lock.capturing
-        sourceComponent: ScreencopyView {
-            id: snap
-
-            width: root.modelData.width
-            height: root.modelData.height
-            opacity: 0
-            captureSource: root.modelData
-            live: false
-            onHasContentChanged: {
-                if (hasContent)
-                    Qt.callLater(() => snap.grabToImage(result => Lock.snapshotReady(root.modelData.name, result), Qt.size(width / 2, height / 2)));
-            }
-        }
-    }
-
     // Sees every press first (without taking it) to dismiss open popups.
     MouseArea {
         anchors.fill: parent

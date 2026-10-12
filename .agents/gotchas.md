@@ -82,14 +82,19 @@ elsewhere.
     re-register** until a full process restart;
   - file watching (hot reload) stopped; use `ipc call shell reload`.
 - `WlSessionLock`: if the client dies while locked, niri stays locked by design.
-  Test with `ipc call lock preview`.
+  Test with `ipc call lock preview`. The restarted shell re-locks from the
+  runtime-dir marker (see Lock in architecture.md).
 - Only one `org.freedesktop.Notifications` owner: another daemon (noctalia,
   mako) means yuki shows no toasts until it exits.
 - Layer surfaces on the same layer stack by creation order: `Backdrop` is
   created before `Wallpaper` so it stays below until niri's
   `place-within-backdrop` rule is active.
-- The bar's `Loader { active: Lock.capturing }` with an invisible full-size
-  `ScreencopyView` is how lock snapshots are taken; it's intentional.
+- Avoid `ScreencopyView` in long-lived code paths: Quickshell 0.3.x binds a
+  second `wl_output` per capture, niri sends `wl_surface.enter` for it, and
+  QtWayland keeps a dangling screen pointer → later segfault in
+  `surface_enter` / `oldestEnteredScreen` (quickshell#1094, fix in PR #1095).
+  The lock screen used to snapshot outputs this way; it uses the wallpaper now
+  (restoring it is tracked in #38).
 - niri sends its own "Screenshot captured" notification; `Notifs` expires it.
 - kitty's `globinclude` rejects absolute patterns; use `include /abs/path`
   (missing file = warning only). niri: `include optional=true "/abs/path"`.
