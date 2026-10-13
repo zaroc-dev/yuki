@@ -63,12 +63,33 @@ that also matches your own shell command (it kills the tool call).
   `nix eval`. Format with `nixfmt`.
 - **Commits**: Conventional Commits (`feat(scope):`, `fix(scope):`, `refactor!:`
   + `BREAKING CHANGE:` footer…), scopes = directory or feature (`bar`, `lock`,
-  `theme`, `settings`, `media`, …). Commit/push only when asked.
+  `theme`, `settings`, `media`, …). Commit/push only when asked, or when working
+  an issue (branch → PR, the user merges).
+- **Never push to `main`**: no commits on `main`, no `git push origin main`, no
+  force-pushes to it, not even for docs or typos. Every change goes through a
+  branch and a PR.
 - **Privacy**: the repo is public. Don't commit screenshots, personal paths
   beyond the README examples, or test data (names from real notifications etc.).
 - License: Apache-2.0. `lib/mcu` is vendored Google material-color-utilities
   (Apache-2.0); only patched for QV4 compatibility (see gotchas). Don't reformat it.
 
-## Open work
+## Project workflow
 
-Tracked as GitHub issues on `zaroc-dev/yuki` (`gh issue list -R zaroc-dev/yuki`).
+The GitHub workflow lives in user-level skills (`~/.claude/skills`), shared
+across projects: `work-on-issue` (issue → branch → PR), `file-issues`
+(labels, body format, splitting, blocked upstream) and `handoff` (work for
+another repo/agent), plus `pr` (PR body template) and `unslop` (for any
+prose that gets posted). They read
+this section for yuki's specifics. Without them: branch from `main`, one
+Conventional commit, PR with `Closes #N`, the user merges.
+
+| | |
+| --- | --- |
+| Repo | `zaroc-dev/yuki` (public), default branch `main`, merge commits |
+| Priorities | `now` · `next` · `medium` · `later`, plus `blocked` |
+| Area labels | `desktop`, `settings`, `launcher`, `notifications`, `network`, `theming`, `lock`, `laptop` (needs the laptop to build or verify) |
+| Commit scopes | directory or feature: `bar`, `lock`, `network`, `bluetooth`, `audio`, `osd`, `dashboard`, `switcher`, `polkit`, `theme`, `settings`, `nix`, `agents`, … |
+| Verify | `verify-in-session` skill (live session, IPC, screenshots); `nix flake check --no-build` for Nix changes |
+| Keep in sync | README (IPC targets, settings, features), `.agents/*.md` (gotchas especially) |
+| Handoff target | `~/dotfiles` (NixOS flake, dendritic modules, no `nix build`); yuki is consumed there as `github:zaroc-dev/yuki` in `modules/desktop/yuki.nix`. A plain bump is `nix flake update yuki` + `chore: bump yuki` there. |
+| Not verifiable here | laptop hardware (Wi-Fi, battery, brightness, lid), real clicks/hover, a real session lock: list them under "Not verified (needs you)" |
