@@ -68,6 +68,7 @@ Singleton {
             property real opacity: 0.78
 
             // ---- wallpaper ----
+            property bool wallpaperEnabled: true
             property string wallpaperDir: "~/wallpapers"
             property string wallpaperDefault: ""
             // output name -> path

@@ -67,7 +67,7 @@ with an empty search, apps are sorted by how often you launch them.
 - **Appearance:** color source, dark/light mode, which screen's wallpaper the colors
   come from, Material scheme (with live previews), Catppuccin flavor and accent,
   blur and opacity.
-- **Wallpaper:** folder, per-screen or all-screen picker, shuffle.
+- **Wallpaper:** management on/off, folder, per-screen or all-screen picker, shuffle.
 - **Bar:** clock format, date, media and active-window widgets.
 - **Notifications:** do not disturb, toast duration, clear all.
 - **Start menu:** reorder and unpin pinned apps.
@@ -78,6 +78,12 @@ with an empty search, apps are sorted by how often you launch them.
 The shell draws the wallpaper itself, one per output, with a fade-and-settle
 transition. Outputs without their own wallpaper use the default (or the first
 image in the folder, `~/wallpapers` by default).
+
+Turn off **Manage wallpapers** in Settings → Wallpaper to let another app manage
+the compositor background. This removes yuki's desktop wallpapers and overview
+backdrops immediately. Choices are preserved and still used for the lock screen
+and dynamic colors; turning management back on restores them. The setting
+`wallpaperEnabled` defaults to `true` and persists across restarts.
 
 With the color source set to `wallpaper`, the seed color of one output's wallpaper
 (the output at 0,0 unless set otherwise) is extracted with Google's
@@ -204,6 +210,7 @@ yuki ipc call bar toggle media|dashboard|notifications|network|volume|power
 yuki ipc call lock lock|preview|closePreview|isLocked
 yuki ipc call vpn toggle|on|off <name or ""> · status
 yuki ipc call settings open [appearance|wallpaper|bar|notifications|start|about]
+yuki ipc call wallpaper enable true|false · toggle
 yuki ipc call wallpaper set <output|all> <path>
 yuki ipc call wallpaper random <output> · shuffle · get <output>
 yuki ipc call theme source wallpaper|catppuccin|custom
