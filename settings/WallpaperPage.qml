@@ -14,6 +14,22 @@ Page {
     readonly property string current: target === "all" ? Wallpapers.fallback : Wallpapers.pathFor(target)
 
     Section {
+        title: "Management"
+        subtitle: "Turn off to use another wallpaper app. Saved images still provide lock screen backgrounds and colors."
+
+        SettingRow {
+            icon: Icons.image
+            label: "Manage wallpapers"
+            description: "Draw wallpapers on the desktop and in the overview"
+
+            Toggle {
+                checked: Settings.d.wallpaperEnabled
+                onToggled: v => Settings.d.wallpaperEnabled = v
+            }
+        }
+    }
+
+    Section {
         title: "Folder"
 
         SettingRow {
@@ -97,7 +113,7 @@ Page {
 
                     required property string modelData
                     readonly property bool selected: modelData === root.current
-                    readonly property var usedOn: Quickshell.screens.filter(s => Wallpapers.pathFor(s.name) === modelData).map(s => s.name)
+                    readonly property var usedOn: Settings.d.wallpaperEnabled ? Quickshell.screens.filter(s => Wallpapers.pathFor(s.name) === modelData).map(s => s.name) : []
 
                     Layout.fillWidth: true
                     Layout.preferredHeight: width * 9 / 16 + 26

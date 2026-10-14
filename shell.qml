@@ -16,13 +16,13 @@ ShellRoot {
     // Created before the wallpapers so it stacks below them even when niri
     // hasn't been told to move it into the overview backdrop yet.
     Variants {
-        model: Settings.d.overviewBackdrop ? Quickshell.screens : []
+        model: Settings.d.wallpaperEnabled && Settings.d.overviewBackdrop ? Quickshell.screens : []
 
         Backdrop {}
     }
 
     Variants {
-        model: Quickshell.screens
+        model: Settings.d.wallpaperEnabled ? Quickshell.screens : []
 
         Wallpaper {}
     }
@@ -145,6 +145,13 @@ ShellRoot {
     IpcHandler {
         target: "wallpaper"
 
+        function enable(enabled: bool): void {
+            Settings.d.wallpaperEnabled = enabled;
+        }
+        function toggle(): bool {
+            Settings.d.wallpaperEnabled = !Settings.d.wallpaperEnabled;
+            return Settings.d.wallpaperEnabled;
+        }
         // screen: output name, or "all"
         function set(screen: string, path: string): void {
             Wallpapers.set(screen, path);
