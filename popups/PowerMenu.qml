@@ -1,9 +1,9 @@
 import QtQuick
 import QtQuick.Layouts
+import Quickshell.Services.UPower
 import qs.config
 import qs.components
 import qs.services
-import Quickshell.Services.UPower
 
 BarPopup {
     id: root
@@ -137,18 +137,24 @@ BarPopup {
         }
     }
 
-    // Power profile (power-profiles-daemon), handy on desktops too.
-    RowLayout {
+    // PowerProfiles can block on daemon startup; only touch it when opened.
+    Loader {
         Layout.fillWidth: true
         Layout.topMargin: 2
-        visible: PowerProfiles.profile !== undefined
+        active: root.visible
+        asynchronous: true
+        visible: item?.available ?? false
 
-        StyledText {
-            Layout.fillWidth: true
-            text: "Profile"
-            color: Theme.subtext0
+        sourceComponent: RowLayout {
+            readonly property bool available: PowerProfiles.profile !== undefined
+
+            StyledText {
+                Layout.fillWidth: true
+                text: "Profile"
+                color: Theme.subtext0
+            }
+
+            ProfilePicker {}
         }
-
-        ProfilePicker {}
     }
 }
