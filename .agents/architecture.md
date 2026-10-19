@@ -74,7 +74,10 @@ Import direction: `config` ← `services` ← `components` ← `bar`/`popups`/`s
 - **Vpn**: Mullvad via `mullvad status --json listen` + `mullvad connect|disconnect`
   (its tunnel isn't an NM connection), NM `wireguard`/`vpn` profiles via nmcli
   (refreshed on `nmcli monitor`; active profiles on "connected (externally)"
-  devices are skipped). `connections` is one list for both.
+  devices are skipped). `connections` is one list for both. OpenConnect profiles
+  authenticate through `services/vpn-connect.py` in the desktop session; the
+  cookie goes to nmcli on stdin and NetworkManager owns the resulting tunnel.
+  Toggling off during login cancels the helper and any pending activation.
 - **Templates**: debounced on palette change; writes niri/kitty/GTK/JSON into
   `~/.local/state/yuki/theme/`, then `niri msg action load-config-file` and
   `pkill -USR1` kitty.

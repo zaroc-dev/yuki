@@ -11,6 +11,10 @@
   wl-clipboard,
   brightnessctl,
   xdg-utils,
+  python3,
+  openconnect,
+  networkmanager,
+  systemd,
   # Run the QML from this directory instead of the store copy, e.g. a git
   # checkout, to keep hot reload. Settings are shared either way (ShellId).
   configDir ? null,
@@ -26,6 +30,10 @@ let
     wl-clipboard
     brightnessctl
     xdg-utils
+    python3
+    openconnect
+    networkmanager
+    systemd
   ];
 
   src = lib.fileset.toSource {

@@ -16,8 +16,10 @@ Singleton {
     property var mullvad: null
     // [{ uuid, name, type, active }]
     property var profiles: []
-    // id -> true while an nmcli up/down runs
+    // id -> connecting|disconnecting while an operation runs
     property var pending: ({})
+    // Keep the activation process so a second toggle can cancel browser login.
+    property var operations: ({})
     // id -> error text from the last toggle
     property var errors: ({})
 
@@ -27,12 +29,12 @@ Singleton {
         if (hasMullvad)
             list.push(mullvadEntry());
         for (const p of profiles) {
-            const busy = pending[p.uuid] ?? false;
+            const busy = pending[p.uuid];
             list.push({
                 id: p.uuid,
                 name: p.name,
-                state: busy ? (p.active ? "disconnecting" : "connecting") : p.active ? "on" : "off",
-                detail: `${p.active ? "Connected" : "Off"} · ${p.type === "wireguard" ? "WireGuard" : "VPN"}`
+                state: busy || (p.active ? "on" : errors[p.uuid] ? "error" : "off"),
+                detail: busy === "connecting" ? "Connecting… · click to cancel" : busy === "disconnecting" ? "Disconnecting…" : `${p.active ? "Connected" : "Off"} · ${p.type === "wireguard" ? "WireGuard" : "VPN"}`
             });
         }
         return list;
@@ -79,13 +81,31 @@ Singleton {
             Quickshell.execDetached(["mullvad", on ? "connect" : "disconnect"]);
             return;
         }
+        const operation = operations[id];
+        if (operation) {
+            if (!on && pending[id] === "connecting") {
+                const p = Object.assign({}, pending);
+                p[id] = "disconnecting";
+                pending = p;
+                operation.cancelled = true;
+                operation.signal(15);
+            }
+            return;
+        }
+        const connection = connections.find(c => c.id === id);
+        if (!connection || (on && connection.state === "on") || (!on && connection.state === "off"))
+            return;
         const p = Object.assign({}, pending);
-        p[id] = true;
+        p[id] = on ? "connecting" : "disconnecting";
         pending = p;
-        toggler.createObject(root, {
+        const proc = toggler.createObject(root, {
             uuid: id,
-            command: ["nmcli", "connection", on ? "up" : "down", "uuid", id]
+            command: on ? ["python3", Quickshell.shellPath("services/vpn-connect.py"), id] : ["nmcli", "connection", "down", "uuid", id]
         });
+        const ops = Object.assign({}, operations);
+        ops[id] = proc;
+        operations = ops;
+        proc.running = true;
     }
 
     function toggle(id) {
@@ -212,8 +232,9 @@ Singleton {
         id: proc
 
         required property string uuid
+        property bool cancelled: false
 
-        running: true
+        stdout: StdioCollector {}
         stderr: StdioCollector {
             id: err
         }
@@ -221,7 +242,10 @@ Singleton {
             const p = Object.assign({}, root.pending);
             delete p[proc.uuid];
             root.pending = p;
-            if (code !== 0) {
+            const ops = Object.assign({}, root.operations);
+            delete ops[proc.uuid];
+            root.operations = ops;
+            if (code !== 0 && !proc.cancelled) {
                 // nmcli prints warnings first; the "Error:" line is the useful one.
                 const lines = err.text.trim().split("\n");
                 const line = lines.find(l => l.startsWith("Error:")) ?? lines.pop() ?? "";
