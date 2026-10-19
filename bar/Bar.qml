@@ -91,6 +91,16 @@ PanelWindow {
             d += ` L ${x0} ${h}`;
             d += leftCorner ? ` A ${cl} ${cl} 0 0 0 0 ${h + cl} Z ` : " Z ";
         }
+        // Where a panel's fillet rim leaves the bar it starts out flat along
+        // the bar's edge, above the panel's window, so the panel can't draw
+        // that bit: the bar draws the part of the arc inside its strip.
+        const f = Theme.fillet, r = f + lw, dx = Math.sqrt(r * r - f * f);
+        for (const [a, b] of joins) {
+            if (a > 0.5)
+                d += `M ${a} ${h - lw} A ${r} ${r} 0 0 1 ${a + dx} ${h} L ${a} ${h} Z `;
+            if (b < w - 0.5)
+                d += `M ${b} ${h - lw} A ${r} ${r} 0 0 0 ${b - dx} ${h} L ${b} ${h} Z `;
+        }
         return d;
     }
     readonly property string band: horizon(width, Theme.barHeight, cornerLeft, cornerRight, joins, Theme.horizonWidth)
