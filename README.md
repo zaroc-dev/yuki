@@ -231,6 +231,13 @@ yuki ipc call theme cycle
 yuki ipc call notifications toggleDnd|clear
 ```
 
+The network popup lists NetworkManager VPN/WireGuard profiles and Mullvad.
+OpenConnect profiles launch browser authentication in the desktop session, then
+NetworkManager manages the tunnel without a terminal. Toggle off to disconnect,
+or to cancel a pending login. Session cookies are passed in memory and are not
+saved in the profile. Install the corresponding NetworkManager VPN plugin on
+the host (for NixOS, `networking.networkmanager.plugins`).
+
 ## Theming
 
 All colors come from `config/Theme.qml`. Whatever the source, it exposes the same
