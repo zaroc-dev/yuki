@@ -6,8 +6,8 @@ import qs.components
 import qs.services
 import qs.popups
 
-// Now playing: the cover spins like a record inside a ring that fills with
-// the track's progress, a little equalizer dances while it plays.
+// Now playing: the cover sits like a record inside a ring that fills with
+// the track's progress, a little equalizer steps while it plays.
 BarButton {
     id: root
 
@@ -68,13 +68,9 @@ BarButton {
                     radiusX: 13
                     radiusY: 13
                     startAngle: -90
+                    // No tween: the position ticks once a second, and animating
+                    // the arc re-tessellates it every frame in every bar.
                     sweepAngle: 360 * root.progress
-
-                    Behavior on sweepAngle {
-                        NumberAnimation {
-                            duration: 900
-                        }
-                    }
                 }
             }
         }
@@ -105,14 +101,6 @@ BarButton {
                 size: 11
                 color: Theme.accent
             }
-
-            RotationAnimator on rotation {
-                from: 0
-                to: 360
-                duration: 9000
-                loops: Animation.Infinite
-                running: root.playing && art.status === Image.Ready
-            }
         }
 
         // Spindle hole.
@@ -142,13 +130,24 @@ BarButton {
         }
     }
 
-    // Faux equalizer: four bars bouncing out of phase while playing.
+    // Faux equalizer, stepped like a VU meter. Nothing in the bar animates
+    // continuously: the shell renders on its GUI thread, and a bar redrawing
+    // every frame (300 Hz on fast monitors) starves the panel animations.
     Row {
         id: eq
+
+        property int tick: 0
 
         anchors.verticalCenter: parent.verticalCenter
         height: 14
         spacing: 2
+
+        Timer {
+            running: root.playing
+            interval: 125
+            repeat: true
+            onTriggered: eq.tick++
+        }
 
         Repeater {
             model: [0.9, 0.55, 1, 0.7]
@@ -158,33 +157,14 @@ BarButton {
 
                 required property real modelData
                 required property int index
-                property real level: 0.3
+                // Out-of-phase waves, so the bars never move in lockstep.
+                readonly property real level: root.playing ? 0.25 + 0.75 * bar.modelData * Math.abs(Math.sin(eq.tick * (0.9 + bar.index * 0.37) + bar.index * 1.7)) : 0.2
 
                 anchors.bottom: parent.bottom
                 width: 2.5
-                height: Math.max(3, eq.height * level)
+                height: Math.max(3, Math.round(eq.height * level))
                 radius: 1.25
                 color: Theme.accent
-
-                SequentialAnimation on level {
-                    running: root.playing
-                    loops: Animation.Infinite
-                    alwaysRunToEnd: true
-
-                    PauseAnimation {
-                        duration: bar.index * 90
-                    }
-                    NumberAnimation {
-                        to: bar.modelData
-                        duration: 260 + bar.index * 40
-                        easing.type: Easing.OutQuad
-                    }
-                    NumberAnimation {
-                        to: 0.2
-                        duration: 300 + bar.index * 30
-                        easing.type: Easing.InOutQuad
-                    }
-                }
             }
         }
     }

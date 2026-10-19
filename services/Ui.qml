@@ -35,13 +35,17 @@ Singleton {
     // nested xdg popup grabs would re-parent (and misplace) the new one.
     property var activePopup: null
     // The popup on screen right now, including its closing animation. The bar
-    // hides its own corner/tab under it so the two shapes don't overlap.
+    // hides its own corner and horizon under it so the two shapes don't overlap.
     property var shownPopup: null
     // Outputs where the toast drawer / OSD currently hang from the bar.
     property string toastScreen: ""
     property string osdScreen: ""
     // Output where a DropSheet (launcher, clipboard) hangs from the bar.
     property string sheetScreen: ""
+    // Body widths of the centered OSD / sheet, so the bar can open its
+    // horizon where they join it.
+    property real osdWidth: 0
+    property real sheetWidth: 0
 
     // Asks the bar on `output` to toggle the popup called `name`
     // (media, dashboard, notifications, network, volume).

@@ -1,5 +1,4 @@
 import QtQuick
-import QtQuick.Shapes
 import qs.config
 
 // A panel that grows out of the bar: square top joined to the bar by concave
@@ -8,7 +7,12 @@ import qs.config
 // so the panel reads as the bar flowing down the side of the screen.
 //
 // The body (bodyWidth × bodyHeight) starts at bodyX; the item is wider by the
-// fillets and taller by one fillet (for the edge fillets).
+// fillets and taller by one fillet (for the edge fillets). Its free edge
+// carries the horizon on from where the bar's ends, lit at the join and
+// fading towards the bottom.
+//
+// Built from a Rectangle and static Corner pieces, so growing it every frame
+// only moves things (see Corner).
 Item {
     id: root
 
@@ -19,46 +23,153 @@ Item {
     property real fillet: Theme.fillet
     property real radius: Theme.radiusLarge
     property color color: Theme.popupBg
+    property bool lit: true
 
     readonly property real bodyX: snapLeft ? 0 : fillet
-
-    // SVG path of the outline, optionally shifted by (ox, oy) (to cut it out
-    // of another shape). Arcs: sweep 1 = clockwise on screen (y down).
-    function outline(w, h, f, r, snapL, snapR, ox = 0, oy = 0) {
-        const rr = Math.max(0, Math.min(r, h / 2, w / 2));
-        // Top fillets shrink while the body is shorter than they are, so a
-        // panel starting at height 0 swells out of the bar.
-        const ft = Math.max(0, Math.min(f, h - rr));
-        const bx = snapL ? 0 : f;
-        const xr = bx + w;
-        const P = (x, y) => `${x + ox} ${y + oy}`;
-        const arc = (rad, sweep, x, y) => rad < 0.5 ? ` L ${P(x, y)}` : ` A ${rad} ${rad} 0 0 ${sweep} ${P(x, y)}`;
-        let d;
-        if (snapL)
-            d = `M ${P(0, 0)} L ${P(0, h + f)}` + arc(f, 1, f, h);
-        else
-            d = `M ${P(bx - ft, 0)}` + arc(ft, 1, bx, ft) + ` L ${P(bx, h - rr)}` + arc(rr, 0, bx + rr, h);
-        if (snapR)
-            d += ` L ${P(xr - f, h)}` + arc(f, 1, xr, h + f) + ` L ${P(xr, 0)} Z`;
-        else
-            d += ` L ${P(xr - rr, h)}` + arc(rr, 0, xr, h - rr) + ` L ${P(xr, ft)}` + arc(ft, 1, xr + ft, 0) + " Z";
-        return d;
-    }
+    readonly property real bodyRight: bodyX + bodyWidth
+    // Bottom radius and top fillets shrink while the body is shorter than
+    // they are, so a panel starting at height 0 swells out of the bar.
+    readonly property real rr: Math.max(0, Math.min(radius, bodyHeight / 2, bodyWidth / 2))
+    readonly property real ft: Math.max(0, Math.min(fillet, bodyHeight - rr))
+    readonly property real lw: Theme.horizonWidth
+    readonly property bool shown: bodyHeight > 0.5
+    readonly property color rimTop: Qt.alpha(Theme.accent, Theme.horizonLit * 0.8)
+    readonly property color rimRest: Qt.alpha(Theme.accent2, Theme.horizonRest)
 
     implicitWidth: bodyWidth + (snapLeft ? 0 : fillet) + (snapRight ? 0 : fillet)
     implicitHeight: bodyHeight + fillet
+    // Rim pieces poke out above (into the bar) and past snapped edges.
+    clip: true
 
-    Shape {
+    // ---- fill ----
+    Rectangle {
+        x: root.bodyX
+        width: root.bodyWidth
+        height: root.bodyHeight
+        visible: root.shown
+        color: root.color
+        bottomLeftRadius: root.snapLeft ? 0 : root.rr
+        bottomRightRadius: root.snapRight ? 0 : root.rr
+    }
+
+    Corner {
+        x: root.bodyX - size
+        size: root.snapLeft || !root.shown ? 0 : root.ft
+        color: root.color
+    }
+    Corner {
+        x: root.bodyRight
+        size: root.snapRight || !root.shown ? 0 : root.ft
+        flipX: true
+        color: root.color
+    }
+    // Edge fillets of snapped sides, under the body like the bar's corners.
+    Corner {
+        y: root.bodyHeight
+        size: root.snapLeft && root.shown ? root.fillet : 0
+        flipX: true
+        color: root.color
+    }
+    Corner {
+        x: root.bodyRight - size
+        y: root.bodyHeight
+        size: root.snapRight && root.shown ? root.fillet : 0
+        color: root.color
+    }
+
+    // ---- rim ----
+    Item {
         anchors.fill: parent
-        preferredRendererType: Shape.CurveRenderer
+        visible: root.lit && root.shown
 
-        ShapePath {
-            fillColor: root.color
-            strokeWidth: -1
+        // Top fillets, continuing the bar's horizon downwards.
+        Corner {
+            x: root.bodyX - root.ft
+            y: -root.lw
+            size: root.snapLeft ? 0 : root.ft + root.lw
+            band: root.lw
+            color: root.rimTop
+        }
+        Corner {
+            x: root.bodyRight - root.lw
+            y: -root.lw
+            size: root.snapRight ? 0 : root.ft + root.lw
+            band: root.lw
+            flipX: true
+            color: root.rimTop
+        }
 
-            PathSvg {
-                path: root.outline(root.bodyWidth, root.bodyHeight, root.fillet, root.radius, root.snapLeft, root.snapRight)
+        // Sides, fading from the join down.
+        Repeater {
+            model: [!root.snapLeft, !root.snapRight]
+
+            Rectangle {
+                required property bool modelData
+                required property int index
+
+                x: index === 0 ? root.bodyX : root.bodyRight - root.lw
+                y: root.ft
+                width: root.lw
+                height: Math.max(0, root.bodyHeight - root.ft - root.rr)
+                visible: modelData
+                gradient: Gradient {
+                    GradientStop {
+                        position: 0
+                        color: root.rimTop
+                    }
+                    GradientStop {
+                        position: Math.min(0.9, 90 / Math.max(1, root.bodyHeight))
+                        color: Qt.alpha(Theme.accent2, Theme.horizonRest * 1.6)
+                    }
+                    GradientStop {
+                        position: 1
+                        color: root.rimRest
+                    }
+                }
             }
+        }
+
+        // Bottom corners and edge.
+        Corner {
+            x: root.bodyX
+            y: root.bodyHeight - root.rr
+            size: root.snapLeft ? 0 : root.rr
+            band: root.lw
+            flipX: true
+            flipY: true
+            color: root.rimRest
+        }
+        Corner {
+            x: root.bodyRight - root.rr
+            y: root.bodyHeight - root.rr
+            size: root.snapRight ? 0 : root.rr
+            band: root.lw
+            flipY: true
+            color: root.rimRest
+        }
+        Rectangle {
+            x: root.snapLeft ? root.fillet : root.bodyX + root.rr
+            y: root.bodyHeight - root.lw
+            width: (root.snapRight ? root.bodyRight - root.fillet : root.bodyRight - root.rr) - x
+            height: root.lw
+            color: root.rimRest
+        }
+
+        // Edge fillets of snapped sides, like the bar's corners.
+        Corner {
+            x: -root.lw
+            y: root.bodyHeight - root.lw
+            size: root.snapLeft ? root.fillet + root.lw : 0
+            band: root.lw
+            flipX: true
+            color: root.rimRest
+        }
+        Corner {
+            x: root.bodyRight - root.fillet
+            y: root.bodyHeight - root.lw
+            size: root.snapRight ? root.fillet + root.lw : 0
+            band: root.lw
+            color: root.rimRest
         }
     }
 }

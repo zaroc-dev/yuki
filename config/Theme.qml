@@ -199,13 +199,16 @@ Singleton {
     readonly property color cardHover: Qt.alpha(surface1, dark ? 0.7 : 0.85)
     readonly property color well: Qt.alpha(dark ? crust : surface0, dark ? 0.45 : 0.6)
     readonly property color rim: Qt.alpha(text, dark ? 0.07 : 0.12)
+    // The horizon: the lit aurora line along the bar's lower edge and around
+    // everything hanging from it. Resting and fully lit strength.
+    readonly property real horizonRest: dark ? 0.32 : 0.4
+    readonly property real horizonLit: 1
 
     // ---- metrics ----
     readonly property int barHeight: 40
     // Concave joins: bar ↔ screen edges, bar ↔ panels, panels ↔ screen edges.
     readonly property int fillet: 16
-    // How far the clock tab hangs below the bar.
-    readonly property int tabDepth: 10
+    readonly property real horizonWidth: 2
     readonly property int gap: 8
     readonly property int radius: 14
     readonly property int radiusLarge: 22

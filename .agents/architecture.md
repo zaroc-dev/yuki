@@ -31,11 +31,17 @@ Import direction: `config` ← `services` ← `components` ← `bar`/`popups`/`s
 ## Bar & popups
 
 - `bar/Bar.qml` is a top-anchored `PanelWindow` per screen drawn as one
-  `Shape` (SVG path from `outline()`): a full-width strip (`Theme.barHeight`),
-  concave screen-corner fillets at both ends (`Theme.fillet`) and the clock tab
-  hanging from the middle (`Theme.tabDepth`, smooth cubic shoulders). The window
-  is taller than its exclusive zone (`barHeight`) so the fillets/tab fit; `mask`
-  and blur cover only strip + tab. Left row: start, launcher, workspaces, active
+  `Shape` (SVG path from `outline()`): a full-width strip (`Theme.barHeight`)
+  with concave screen-corner fillets at both ends (`Theme.fillet`). The window
+  is taller than its exclusive zone (`barHeight`) so the fillets fit; `mask`
+  and blur cover only the strip. The horizon is `band`, from `horizon()`: a
+  `Theme.horizonWidth` band along the inside of the bottom edge + corners
+  minus `joins` (x-ranges of whatever hangs from this bar: popup, OSD, sheet,
+  toast drawer, each body ± one fillet). It is filled several times in the
+  bar's Shape: a resting aurora gradient, then `Light`s (horizontal gradient
+  pools: sun, join ends, comet on a new `Notifs.popups[0]` id, cursor via a
+  non-blocking `HoverHandler` on the bar's Shape, under every widget). Moving a light only
+  changes a gradient; the path changes only when joins/corners do. Left row: start, launcher, workspaces, active
   window. Right row: media, tray, a `Theme.well` with bluetooth/network/volume/
   battery, notifications, power. Title budgets per side come from fixed parts only.
 - **Fused surfaces.** Everything that hangs from the bar is a `components/Surface`
@@ -46,10 +52,15 @@ Import direction: `config` ← `services` ← `components` ← `bar`/`popups`/`s
   - `Ui.shownPopup` (visible popup incl. its closing animation): a snapped one
     hides that bar corner, instantly; at reveal 0 the panel's edge fillet sits
     exactly where the corner was (both radius `Theme.fillet`), so the handoff
-    is invisible. Its x-range over the tab folds the tab away (animated).
+    is invisible.
   - `Ui.toastScreen` (toast drawer, snapped right) hides the right corner;
-    `Ui.osdScreen` / `Ui.sheetScreen` (OSD, launcher/clipboard `DropSheet`)
-    fold the tab.
+    `Ui.osdScreen` / `Ui.sheetScreen` (OSD, launcher/clipboard `DropSheet`,
+    widths in `Ui.osdWidth` / `Ui.sheetWidth`) open the horizon mid-bar.
+  - A Surface is a `Rectangle` (bottom radii) plus static `Corner` pieces
+    (fillets, and quarter-ring rims) that only move as it grows, never a
+    per-frame path. Its rim (fillets, sides, bottom; not the edges against the
+    bar or screen) starts exactly where the bar's horizon breaks. `DropSheet`
+    pieces its dim around the sheet the same way.
   - Blur for a Surface: `SurfaceRegion` (child `Region`s use window coordinates;
     a parent region's x/y doesn't offset them, hence `bodyX/bodyY`).
 - A full-size pass-through `MouseArea` (z 1000, `accepted = false`) calls

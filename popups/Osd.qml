@@ -5,8 +5,8 @@ import qs.config
 import qs.components
 import qs.services
 
-// Volume/brightness readout that drops out of the middle of the bar (the
-// clock tab folds away for it) and melts back in. One window per output;
+// Volume/brightness readout that drops out of the middle of the bar and
+// melts back in. One window per output;
 // only the focused one shows.
 Variants {
     model: Quickshell.screens
@@ -23,8 +23,10 @@ Variants {
         screen: modelData
         visible: reveal > 0.001
         onVisibleChanged: {
-            if (visible)
+            if (visible) {
+                Ui.osdWidth = bodyWidth;
                 Ui.osdScreen = modelData.name;
+            }
             else if (Ui.osdScreen === modelData.name)
                 Ui.osdScreen = "";
         }

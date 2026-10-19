@@ -1,6 +1,5 @@
 import QtQuick
 import QtQuick.Layouts
-import QtQuick.Shapes
 import Quickshell
 import Quickshell.Wayland
 import qs.config
@@ -36,6 +35,7 @@ PanelWindow {
     WlrLayershell.keyboardFocus: WlrKeyboardFocus.Exclusive
     BackgroundEffect.blurRegion: Theme.blur ? blurRegion : null
     Component.onCompleted: {
+        Ui.sheetWidth = bodyWidth;
         Ui.sheetScreen = screen?.name ?? "";
         reveal = 1;
     }
@@ -67,19 +67,84 @@ PanelWindow {
         bodyHeight: clip.height
     }
 
-    // Dim below the bar with the sheet's outline cut out.
-    Shape {
+    // Dim below the bar around the sheet, pieced together like the Surface
+    // (a cut-out path would re-tessellate full screen every frame).
+    Item {
+        id: dim
+
+        readonly property color tint: Qt.alpha(Theme.crust, 0.45)
+        readonly property real y0: Theme.barHeight
+        readonly property real x0: root.bodyX
+        readonly property real x1: root.bodyX + root.bodyWidth
+
         anchors.fill: parent
         opacity: root.reveal
 
-        ShapePath {
-            fillColor: Qt.alpha(Theme.crust, 0.45)
-            fillRule: ShapePath.OddEvenFill
-            strokeWidth: -1
-
-            PathSvg {
-                path: `M 0 ${Theme.barHeight} L ${root.width} ${Theme.barHeight} L ${root.width} ${root.height} L 0 ${root.height} Z ` + surface.outline(root.bodyWidth, clip.height, Theme.fillet, Theme.radiusLarge, false, false, root.bodyX - Theme.fillet, Theme.barHeight)
-            }
+        Rectangle {
+            y: dim.y0
+            width: dim.x0 - surface.ft
+            height: root.height - dim.y0
+            color: dim.tint
+        }
+        Rectangle {
+            x: dim.x1 + surface.ft
+            y: dim.y0
+            width: root.width - x
+            height: root.height - dim.y0
+            color: dim.tint
+        }
+        // Under the fillets: what the fillet doesn't cover, and the strip below.
+        Corner {
+            x: dim.x0 - size
+            y: dim.y0
+            size: surface.ft
+            band: size
+            color: dim.tint
+        }
+        Corner {
+            x: dim.x1
+            y: dim.y0
+            size: surface.ft
+            band: size
+            flipX: true
+            color: dim.tint
+        }
+        Rectangle {
+            x: dim.x0 - surface.ft
+            y: dim.y0 + surface.ft
+            width: surface.ft
+            height: root.height - y
+            color: dim.tint
+        }
+        Rectangle {
+            x: dim.x1
+            y: dim.y0 + surface.ft
+            width: surface.ft
+            height: root.height - y
+            color: dim.tint
+        }
+        // Below the sheet, and outside its rounded bottom corners.
+        Rectangle {
+            x: dim.x0
+            y: dim.y0 + clip.height
+            width: root.bodyWidth
+            height: root.height - y
+            color: dim.tint
+        }
+        Corner {
+            x: dim.x0
+            y: dim.y0 + clip.height - size
+            size: surface.rr
+            flipX: true
+            flipY: true
+            color: dim.tint
+        }
+        Corner {
+            x: dim.x1 - size
+            y: dim.y0 + clip.height - size
+            size: surface.rr
+            flipY: true
+            color: dim.tint
         }
     }
 

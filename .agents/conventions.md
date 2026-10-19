@@ -28,7 +28,8 @@
 | panel header | `PanelHeader { icon; title; subtitle; lit; <trailing controls> }` |
 | group label | `SectionLabel { text; <trailing controls> }` (caps + fading rule) |
 | keyboard overlay from the bar | `DropSheet { bodyWidth; onDismissed }` (launcher, clipboard) |
-| anything hanging from the bar | `Surface` + `SurfaceRegion` at `y = Theme.barHeight` (OSD, toasts) |
+| anything hanging from the bar | `Surface` + `SurfaceRegion` at `y = Theme.barHeight` (OSD, toasts); tell the bar its x-range (`Ui.*Screen`/`*Width`) so the horizon opens there |
+| a round corner piece (fillet, rim arc, dim around a corner) | `Corner { size; band; flipX; flipY }`, static path, move it instead of re-pathing |
 | switch / choice | `Toggle`, `Segmented { options: [{value,label,icon}] }` |
 | slider | `StyledSlider` (`onMoved: v => …`; `thickness` 22–26 for volume-like, < 12 = thin with a knob, `icon` inside) |
 | text input | `TextField { placeholder; icon; password }` (`accepted`/`cancelled`; Escape doesn't close the popup) |

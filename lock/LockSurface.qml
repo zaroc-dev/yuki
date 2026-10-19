@@ -19,9 +19,6 @@ Item {
     readonly property bool busy: Lock.state === "busy"
     readonly property bool bad: Lock.state === "failed" || Lock.state === "error"
     property string armed: ""
-    // Side by side on landscape outputs, stacked on portrait ones.
-    readonly property bool wide: width > height * 1.15
-    readonly property real clockSize: Math.round(Math.min(width * (wide ? 0.13 : 0.22), height * 0.21))
 
     function act(id) {
         if (armed !== id) {
@@ -181,122 +178,40 @@ Item {
         anchors.fill: parent
         opacity: root.phase
 
-        // Giant stacked clock: hours over minutes, the minutes filled with the
-        // aurora. Left of the password on wide outputs, above it on tall ones.
-        // Placed by font metrics: digits span ~0.24..0.97 em of the line box.
-        Item {
-            id: clockBlock
+        // Clock
+        Column {
+            anchors.horizontalCenter: parent.horizontalCenter
+            y: parent.height * 0.13 - (1 - root.phase) * 40
+            spacing: 0
 
-            readonly property real em: root.clockSize
-
-            x: root.wide ? Math.round(parent.width * 0.08) : Math.round((parent.width - width) / 2)
-            y: (root.wide ? Math.round((parent.height - height) / 2) - 20 : Math.round(parent.height * 0.08)) - (1 - root.phase) * 40
-            width: Math.max(hours.implicitWidth, minutes.implicitWidth, date.implicitWidth)
-            height: weather.y + weather.height
-
-            StyledText {
-                id: hours
-
-                text: Qt.formatDateTime(clock.date, Settings.d.clock24h ? "HH" : "hh")
-                font.family: Theme.displayFont
-                font.pixelSize: root.clockSize
-                font.weight: Font.Black
-                font.letterSpacing: -root.clockSize * 0.04
-                font.features: {
-                    "tnum": 1
-                }
-            }
-
-            Item {
-                id: minutesBox
-
-                y: Math.round(clockBlock.em * 0.82)
-                width: minutes.implicitWidth
-                height: minutes.implicitHeight
+            Row {
+                anchors.horizontalCenter: parent.horizontalCenter
 
                 StyledText {
-                    id: minutes
-
-                    text: Qt.formatDateTime(clock.date, "mm")
-                    font: hours.font
-                    visible: false
-                    layer.enabled: true
-                }
-
-                Rectangle {
-                    id: aurora
-
-                    width: minutes.implicitWidth
-                    height: minutes.implicitHeight
-                    visible: false
-                    layer.enabled: true
-                    gradient: Gradient {
-                        GradientStop {
-                            position: 0.25
-                            color: Theme.accent
-                        }
-                        GradientStop {
-                            position: 0.95
-                            color: Theme.accent2
-                        }
-                    }
-                }
-
-                MultiEffect {
-                    anchors.fill: parent
-                    source: aurora
-                    maskEnabled: true
-                    maskSource: minutes
-                    maskThresholdMin: 0.5
-                    maskSpreadAtMin: 1
-                }
-            }
-
-            // Seconds sweep under the digits.
-            Rectangle {
-                id: sweep
-
-                x: clockBlock.em * 0.04
-                y: Math.round(minutesBox.y + clockBlock.em * 1.06)
-                width: clockBlock.width - x * 2
-                height: 4
-                radius: 2
-                color: Qt.alpha(Theme.text, 0.14)
-
-                Rectangle {
-                    width: Math.max(parent.height, parent.width * clock.date.getSeconds() / 59)
-                    height: parent.height
-                    radius: parent.radius
-                    color: Theme.text
-
-                    Behavior on width {
-                        enabled: clock.date.getSeconds() !== 0
-                        NumberAnimation {
-                            duration: 400
-                            easing.type: Easing.OutCubic
-                        }
+                    text: Qt.formatDateTime(clock.date, "HH:mm")
+                    font.family: Theme.displayFont
+                    font.pixelSize: 136
+                    font.weight: Font.Bold
+                    font.letterSpacing: -3
+                    font.features: {
+                        "tnum": 1
                     }
                 }
             }
 
             StyledText {
-                id: date
-
-                x: sweep.x
-                y: sweep.y + 22
+                anchors.horizontalCenter: parent.horizontalCenter
                 text: Qt.formatDateTime(clock.date, "dddd · d MMMM").toUpperCase()
-                font.pixelSize: Math.max(14, Math.round(root.clockSize * 0.075))
+                font.pixelSize: 15
                 font.weight: Font.Bold
-                font.letterSpacing: 4
-                color: Theme.text
+                font.letterSpacing: 3
+                color: Theme.accent
             }
 
             // Weather (cached, so it's there even before the network is).
             Row {
-                id: weather
-
-                x: sweep.x
-                y: date.y + date.height + 10
+                anchors.horizontalCenter: parent.horizontalCenter
+                topPadding: 14
                 spacing: 10
                 visible: Weather.available
                 Component.onCompleted: Weather.refresh()
@@ -304,7 +219,7 @@ Item {
                 Icon {
                     anchors.verticalCenter: parent.verticalCenter
                     text: Weather.icon
-                    size: 24
+                    size: 26
                     color: Theme.accent
                 }
 
@@ -312,313 +227,281 @@ Item {
                     anchors.verticalCenter: parent.verticalCenter
                     text: Weather.temp
                     font.family: Theme.displayFont
-                    font.pixelSize: 20
+                    font.pixelSize: 22
                     font.weight: Font.ExtraBold
                 }
 
                 StyledText {
                     anchors.verticalCenter: parent.verticalCenter
                     text: Weather.place ? `${Weather.condition} · ${Weather.place}` : Weather.condition
-                    font.pixelSize: 16
+                    font.pixelSize: 17
                     color: Theme.subtext1
                 }
             }
         }
 
-        // Avatar, name, password on a glass card.
-        Rectangle {
-            id: card
+        // Avatar, name, password.
+        ColumnLayout {
+            id: auth
 
-            x: root.wide ? Math.round(parent.width * 0.92 - width) : Math.round((parent.width - width) / 2)
-            y: (root.wide ? Math.round((parent.height - height) / 2) : Math.round(parent.height * 0.56)) + (1 - root.phase) * 50
-            width: auth.implicitWidth + 64
-            height: auth.implicitHeight + 64
-            radius: 36
-            color: Qt.alpha(Theme.base, 0.42)
-            border.width: 1
-            border.color: Qt.alpha(Theme.text, 0.1)
+            anchors.horizontalCenter: parent.horizontalCenter
+            y: parent.height * 0.52 + (1 - root.phase) * 50
+            spacing: 14
 
             transform: Translate {
                 id: shake
             }
 
-            // Aurora light at the top edge of the card.
-            Rectangle {
-                anchors.fill: parent
-                radius: parent.radius
-                gradient: Gradient {
-                    GradientStop {
-                        position: 0
-                        color: Qt.alpha(root.bad ? Theme.red : Theme.accent, 0.16)
-                    }
-                    GradientStop {
-                        position: 0.5
-                        color: "transparent"
-                    }
-                }
-            }
+            Item {
+                Layout.alignment: Qt.AlignHCenter
+                implicitWidth: 112
+                implicitHeight: 112
 
-            ColumnLayout {
-                id: auth
+                // Aurora ring: the gradient disc seen through a ring-shaped mask.
+                Rectangle {
+                    id: auroraDisc
 
-                anchors.centerIn: parent
-                spacing: 14
-
-                Item {
-                    Layout.alignment: Qt.AlignHCenter
-                    implicitWidth: 112
-                    implicitHeight: 112
-
-                    // Aurora ring; red after a wrong password, breathing while checking.
-                    Rectangle {
-                        id: ring
-
-                        anchors.fill: parent
-                        radius: width / 2
-                        opacity: 0.95
-                        gradient: Gradient {
-                            GradientStop {
-                                position: 0
-                                color: root.bad ? Theme.red : Theme.accent
-                            }
-                            GradientStop {
-                                position: 1
-                                color: root.bad ? Theme.peach : Theme.accent2
-                            }
+                    anchors.fill: parent
+                    radius: width / 2
+                    visible: false
+                    layer.enabled: true
+                    gradient: Gradient {
+                        GradientStop {
+                            position: 0
+                            color: root.bad ? Theme.red : Theme.accent
                         }
-
-                        SequentialAnimation on opacity {
-                            running: root.busy
-                            loops: Animation.Infinite
-                            onRunningChanged: if (!running) ring.opacity = 0.95
-
-                            NumberAnimation {
-                                to: 0.25
-                                duration: 500
-                                easing.type: Easing.InOutSine
-                            }
-                            NumberAnimation {
-                                to: 0.95
-                                duration: 500
-                                easing.type: Easing.InOutSine
-                            }
+                        GradientStop {
+                            position: 1
+                            color: root.bad ? Theme.red : Theme.accent2
                         }
-                    }
-
-                    Rectangle {
-                        anchors.centerIn: parent
-                        width: 104
-                        height: 104
-                        radius: 52
-                        color: Theme.base
-                    }
-
-                    Avatar {
-                        anchors.centerIn: parent
-                        size: 96
-                    }
-                }
-
-                ColumnLayout {
-                    Layout.alignment: Qt.AlignHCenter
-                    spacing: 0
-
-                    StyledText {
-                        Layout.alignment: Qt.AlignHCenter
-                        text: Power.user
-                        font.family: Theme.displayFont
-                        font.pixelSize: 26
-                        font.weight: Font.Black
-                    }
-
-                    StyledText {
-                        Layout.alignment: Qt.AlignHCenter
-                        visible: Power.hostname !== ""
-                        text: `on ${Power.hostname}`
-                        color: Theme.subtext0
                     }
                 }
 
                 Rectangle {
-                    id: field
+                    id: ringShape
 
-                    Layout.alignment: Qt.AlignHCenter
-                    Layout.topMargin: 6
-                    implicitWidth: 340
-                    implicitHeight: 56
-                    radius: height / 2
-                    color: Qt.alpha(Theme.crust, 0.5)
-                    border.width: 1.5
-                    border.color: root.bad ? Theme.red : Lock.password !== "" ? Qt.alpha(Theme.accent, 0.9) : Qt.alpha(Theme.text, 0.14)
+                    anchors.fill: parent
+                    radius: width / 2
+                    color: "transparent"
+                    border.width: 3
+                    border.color: "white"
+                    visible: false
+                    layer.enabled: true
+                }
 
-                    Behavior on border.color {
-                        ColorAnimation {
-                            duration: Theme.anim
+                MultiEffect {
+                    id: ring
+
+                    anchors.fill: parent
+                    source: auroraDisc
+                    maskEnabled: true
+                    maskSource: ringShape
+                    maskThresholdMin: 0.5
+                    maskSpreadAtMin: 1
+                    opacity: 0.85
+
+                    SequentialAnimation on opacity {
+                        running: root.busy
+                        loops: Animation.Infinite
+                        onRunningChanged: if (!running) ring.opacity = 0.85
+
+                        NumberAnimation {
+                            to: 0.2
+                            duration: 500
+                            easing.type: Easing.InOutSine
+                        }
+                        NumberAnimation {
+                            to: 0.85
+                            duration: 500
+                            easing.type: Easing.InOutSine
                         }
                     }
+                }
 
-                    TextInput {
-                        id: input
+                Avatar {
+                    anchors.centerIn: parent
+                    size: 98
+                }
+            }
 
+            StyledText {
+                Layout.alignment: Qt.AlignHCenter
+                text: Power.user
+                font.family: Theme.displayFont
+                font.pixelSize: 22
+                font.weight: Font.ExtraBold
+            }
+
+            Rectangle {
+                id: field
+
+                Layout.alignment: Qt.AlignHCenter
+                Layout.topMargin: 4
+                implicitWidth: 340
+                implicitHeight: 52
+                radius: height / 2
+                color: Qt.alpha(Theme.base, 0.55)
+                border.width: 1.5
+                border.color: root.bad ? Theme.red : Lock.password !== "" ? Qt.alpha(Theme.accent, 0.55) : Theme.rim
+
+                Behavior on border.color {
+                    ColorAnimation {
+                        duration: Theme.anim
+                    }
+                }
+
+                TextInput {
+                    id: input
+
+                    anchors.fill: parent
+                    opacity: 0
+                    focus: true
+                    echoMode: TextInput.Password
+                    readOnly: root.busy || Lock.unlocking
+                    cursorVisible: false
+                    onTextChanged: {
+                        if (Lock.password !== text)
+                            Lock.password = text;
+                        if (text !== "" && root.bad)
+                            Lock.state = "idle";
+                    }
+                    Keys.onReturnPressed: Lock.submit()
+                    Keys.onEnterPressed: Lock.submit()
+                    Keys.onEscapePressed: {
+                        if (text === "" && root.preview)
+                            Lock.cancelPreview();
+                        else
+                            text = "";
+                    }
+
+                    Connections {
+                        target: Lock
+
+                        function onPasswordChanged(): void {
+                            if (input.text !== Lock.password)
+                                input.text = Lock.password;
+                        }
+                    }
+                }
+
+                Icon {
+                    id: lockIcon
+
+                    anchors.left: parent.left
+                    anchors.leftMargin: 18
+                    anchors.verticalCenter: parent.verticalCenter
+                    text: root.busy ? Icons.loading : Lock.unlocking ? Icons.lockOpen : Icons.lockOutline
+                    color: root.bad ? Theme.red : Theme.subtext0
+
+                    RotationAnimation on rotation {
+                        running: root.busy
+                        loops: Animation.Infinite
+                        from: 0
+                        to: 360
+                        duration: 900
+                        onRunningChanged: if (!running) lockIcon.rotation = 0
+                    }
+                }
+
+                StyledText {
+                    anchors.centerIn: parent
+                    visible: Lock.password === "" && !root.busy
+                    text: "Enter password"
+                    color: Theme.overlay1
+                }
+
+                Row {
+                    anchors.centerIn: parent
+                    spacing: 7
+
+                    Repeater {
+                        model: Math.min(Lock.password.length, 20)
+
+                        Rectangle {
+                            required property int index
+
+                            width: 10
+                            height: 10
+                            radius: 5
+                            // Aurora across the dots.
+                            color: root.busy ? Theme.overlay1 : Qt.tint(Theme.accent, Qt.alpha(Theme.accent2, index / 16))
+                            scale: 0
+                            Component.onCompleted: scale = 1
+
+                            Behavior on scale {
+                                NumberAnimation {
+                                    duration: 140
+                                    easing.type: Easing.OutBack
+                                }
+                            }
+                        }
+                    }
+                }
+
+                MouseArea {
+                    id: submit
+
+                    anchors.right: parent.right
+                    anchors.rightMargin: 7
+                    anchors.verticalCenter: parent.verticalCenter
+                    width: 38
+                    height: 38
+                    enabled: Lock.password !== "" && !root.busy
+                    hoverEnabled: true
+                    cursorShape: Qt.PointingHandCursor
+                    onClicked: Lock.submit()
+
+                    Rectangle {
                         anchors.fill: parent
-                        opacity: 0
-                        focus: true
-                        echoMode: TextInput.Password
-                        readOnly: root.busy || Lock.unlocking
-                        cursorVisible: false
-                        onTextChanged: {
-                            if (Lock.password !== text)
-                                Lock.password = text;
-                            if (text !== "" && root.bad)
-                                Lock.state = "idle";
-                        }
-                        Keys.onReturnPressed: Lock.submit()
-                        Keys.onEnterPressed: Lock.submit()
-                        Keys.onEscapePressed: {
-                            if (text === "" && root.preview)
-                                Lock.cancelPreview();
-                            else
-                                text = "";
+                        radius: width / 2
+                        color: Theme.well
+                        scale: submit.pressed ? 0.92 : 1
+                        gradient: submit.enabled ? aurora : null
+
+                        Gradient {
+                            id: aurora
+
+                            GradientStop {
+                                position: 0
+                                color: submit.containsMouse ? Qt.lighter(Theme.accent, 1.1) : Theme.accent
+                            }
+                            GradientStop {
+                                position: 1
+                                color: submit.containsMouse ? Qt.lighter(Theme.accent2, 1.1) : Theme.accent2
+                            }
                         }
 
-                        Connections {
-                            target: Lock
-
-                            function onPasswordChanged(): void {
-                                if (input.text !== Lock.password)
-                                    input.text = Lock.password;
+                        Behavior on scale {
+                            NumberAnimation {
+                                duration: 120
+                                easing.type: Easing.OutCubic
                             }
                         }
                     }
 
                     Icon {
-                        id: lockIcon
-
-                        anchors.left: parent.left
-                        anchors.leftMargin: 20
-                        anchors.verticalCenter: parent.verticalCenter
-                        text: root.busy ? Icons.loading : Lock.unlocking ? Icons.lockOpen : Icons.lockOutline
-                        color: root.bad ? Theme.red : Theme.subtext0
-
-                        RotationAnimation on rotation {
-                            running: root.busy
-                            loops: Animation.Infinite
-                            from: 0
-                            to: 360
-                            duration: 900
-                            onRunningChanged: if (!running) lockIcon.rotation = 0
-                        }
-                    }
-
-                    StyledText {
                         anchors.centerIn: parent
-                        visible: Lock.password === "" && !root.busy
-                        text: "Enter password"
-                        color: Theme.overlay1
-                    }
-
-                    // One aurora dot per character, popping in.
-                    Row {
-                        anchors.centerIn: parent
-                        spacing: 7
-
-                        Repeater {
-                            model: Math.min(Lock.password.length, 16)
-
-                            Rectangle {
-                                required property int index
-
-                                width: 10
-                                height: 10
-                                radius: 5
-                                color: root.busy ? Theme.overlay1 : Qt.tint(Theme.accent, Qt.alpha(Theme.accent2, index / 16))
-                                scale: 0
-                                Component.onCompleted: scale = 1
-
-                                Behavior on scale {
-                                    NumberAnimation {
-                                        duration: 160
-                                        easing.type: Easing.OutBack
-                                        easing.overshoot: 2.5
-                                    }
-                                }
-                            }
-                        }
-                    }
-
-                    MouseArea {
-                        id: submit
-
-                        anchors.right: parent.right
-                        anchors.rightMargin: 8
-                        anchors.verticalCenter: parent.verticalCenter
-                        width: 40
-                        height: 40
-                        enabled: Lock.password !== "" && !root.busy
-                        hoverEnabled: true
-                        cursorShape: Qt.PointingHandCursor
-                        onClicked: Lock.submit()
-
-                        Rectangle {
-                            anchors.fill: parent
-                            radius: width / 2
-                            color: Qt.alpha(Theme.surface1, 0.6)
-                            scale: submit.containsMouse ? 1.06 : 1
-
-                            Behavior on scale {
-                                NumberAnimation {
-                                    duration: Theme.anim
-                                    easing.type: Easing.OutBack
-                                }
-                            }
-
-                            Rectangle {
-                                anchors.fill: parent
-                                radius: parent.radius
-                                opacity: submit.enabled ? 1 : 0
-                                gradient: Gradient {
-                                    GradientStop {
-                                        position: 0
-                                        color: Theme.accent
-                                    }
-                                    GradientStop {
-                                        position: 1
-                                        color: Theme.accent2
-                                    }
-                                }
-
-                                Behavior on opacity {
-                                    NumberAnimation {
-                                        duration: Theme.anim
-                                    }
-                                }
-                            }
-                        }
-
-                        Icon {
-                            anchors.centerIn: parent
-                            text: Icons.arrowRight
-                            size: 20
-                            color: submit.enabled ? Theme.onAccent : Theme.overlay1
-                        }
+                        text: Icons.arrowRight
+                        size: 20
+                        color: submit.enabled ? Theme.onAccent : Theme.overlay1
                     }
                 }
+            }
 
-                StyledText {
-                    Layout.alignment: Qt.AlignHCenter
-                    Layout.preferredHeight: 20
-                    text: {
-                        if (Lock.unlocking)
-                            return "Welcome back";
-                        if (root.busy)
-                            return "Checking…";
-                        if (Lock.message)
-                            return Lock.message;
-                        return root.preview ? "Preview · Esc to leave" : "";
-                    }
-                    color: root.bad ? Theme.red : Theme.subtext0
-                    font.pixelSize: Theme.fontSize
+            StyledText {
+                Layout.alignment: Qt.AlignHCenter
+                Layout.preferredHeight: 20
+                text: {
+                    if (Lock.unlocking)
+                        return "Welcome back";
+                    if (root.busy)
+                        return "Checking…";
+                    if (Lock.message)
+                        return Lock.message;
+                    return root.preview ? "Preview · Esc to leave" : "";
                 }
+                color: root.bad ? Theme.red : Theme.subtext0
+                font.pixelSize: Theme.fontSize
             }
         }
 
@@ -629,24 +512,23 @@ Item {
             anchors.bottom: parent.bottom
             anchors.margins: 32
             width: mediaRow.implicitWidth + 24
-            height: 72
-            radius: 36
-            color: Qt.alpha(Theme.base, 0.42)
+            height: 68
+            radius: Theme.radiusLarge
+            color: Qt.alpha(Theme.base, 0.45)
             border.width: 1
-            border.color: Qt.alpha(Theme.text, 0.1)
+            border.color: Theme.rim
 
             RowLayout {
                 id: mediaRow
 
                 anchors.fill: parent
-                anchors.margins: 12
-                anchors.rightMargin: 14
+                anchors.margins: 10
                 spacing: 12
 
                 ClippingRectangle {
                     Layout.preferredWidth: 48
                     Layout.preferredHeight: 48
-                    radius: 24
+                    radius: 12
                     color: Theme.surface0
 
                     Image {
@@ -670,7 +552,7 @@ Item {
                     StyledText {
                         Layout.maximumWidth: 240
                         text: Media.active?.trackArtist ?? ""
-                        color: Theme.accent
+                        color: Theme.subtext0
                         font.pixelSize: Theme.smallFontSize + 1
                     }
                 }
@@ -714,11 +596,11 @@ Item {
                 anchors.verticalCenter: parent.verticalCenter
                 visible: Niri.keyboardLayout !== ""
                 width: kbRow.implicitWidth + 28
-                height: 48
-                radius: 24
-                color: Qt.alpha(Theme.base, 0.42)
+                height: 44
+                radius: 22
+                color: Qt.alpha(Theme.base, 0.45)
                 border.width: 1
-                border.color: Qt.alpha(Theme.text, 0.1)
+                border.color: Theme.rim
 
                 Row {
                     id: kbRow
@@ -751,8 +633,8 @@ Item {
                     required property var modelData
                     readonly property bool isArmed: root.armed === modelData.id
 
-                    width: 48
-                    height: 48
+                    width: 44
+                    height: 44
                     hoverEnabled: true
                     cursorShape: Qt.PointingHandCursor
                     onClicked: {
@@ -765,9 +647,9 @@ Item {
                     Rectangle {
                         anchors.fill: parent
                         radius: width / 2
-                        color: pb.isArmed ? Theme.red : pb.containsMouse ? Qt.alpha(Theme.text, 0.16) : Qt.alpha(Theme.base, 0.42)
-                        border.width: 1
-                        border.color: Qt.alpha(Theme.text, 0.1)
+                        color: pb.isArmed ? Theme.red : pb.containsMouse ? Qt.alpha(Theme.text, 0.16) : Qt.alpha(Theme.base, 0.45)
+                        border.width: pb.isArmed ? 0 : 1
+                        border.color: Theme.rim
 
                         Behavior on color {
                             ColorAnimation {

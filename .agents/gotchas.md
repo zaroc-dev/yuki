@@ -44,11 +44,32 @@ elsewhere.
   never showed). Don't name ids after properties you read unqualified.
 - **`font.pixelSize` is an int**: `8.5` fails the whole component ("Invalid
   property assignment: int expected"), and with it the bar.
+- **`Item` has FINAL `left`/`right`/`top`/`bottom`** (anchor lines): declaring
+  `property real left` fails the file ("Cannot override FINAL property").
+- **The shell renders on its GUI thread** (no render threads; per-thread CPU
+  shows only the main thread). Every frame any window draws competes with
+  every animation, so:
+  - nothing in the bar may animate continuously: a spinning cover + tweened
+    equalizer kept three bars redrawing at monitor rate (300 Hz on DP-2),
+    ~25% CPU idle, and panel transitions stuttered. Step it with a Timer;
+  - don't animate Shape paths per frame (panel outlines, progress arcs with a
+    Behavior): build from Rectangles + static `Corner`s and move them;
+  - avoid `MultiEffect`/layers that re-render every frame.
+  Measure: CPU ticks of the shell PID (`/proc/<pid>/stat` fields 14+15)
+  across scripted IPC open/close cycles, and at idle.
+- **Bar buttons' hover capsules stayed lit** (hover-enter without
+  hover-leave) while a `HoverHandler` sat on the bar's topmost item. Watch the
+  cursor from an item *below* the widgets (`blocking: false`) instead.
+- **`Shape.CurveRenderer` inside a layer renders nothing** (a stroke used as
+  a `MultiEffect` mask came out empty); use the default renderer there.
+- **`MultiEffect` mask with `maskThresholdMin: 0` passes everything** (alpha
+  0 ≥ 0). For soft masks use `maskThresholdMin: 0.5, maskSpreadAtMin: 1`.
 - **Nerd Font glyphs are off-center** in their advance box. `Icon` shifts by the
   ink (`TextMetrics.tightBoundingRect`); don't fight it with manual margins.
 
 ## QV4 (Qt's JS engine)
 
+- No `Array.prototype.flatMap`: use `reduce` + `concat`.
 - No object spread (`{...a, ...b}`): use `Object.assign({}, a, b)`. Array
   spread is fine. Two spots in `lib/mcu` are patched for this (marked
   `patched: QV4 lacks object spread`); re-apply when updating the vendored lib.

@@ -1,16 +1,19 @@
 # yuki
 
 A Quickshell desktop shell for niri. One frosted strip is fused to the top edge
-of each screen; its ends curve down into rounded screen corners, and the clock
-hangs from its middle in a small tab. Every panel grows out of the bar's bottom
-edge, joined by concave fillets so the two read as one liquid surface. Panels
-near a screen edge snap to it and run down the side like a drawer.
+of each screen; its ends curve down into rounded screen corners. Every panel
+grows out of the bar's bottom edge, joined by concave fillets so the two read as
+one liquid surface. Panels near a screen edge snap to it and run down the side
+like a drawer. Along the bar's edge runs the horizon, a thin aurora line that
+carries on around every panel and gathers light: under the cursor, where panels
+join, in a sun that crosses the screen once a day, and in a comet that shoots
+across when a notification arrives.
 
 | Part   | Contents                                                                    |
 | ------ | --------------------------------------------------------------------------- |
-| left   | start badge + app launcher, niri workspaces of *this* output, its active window |
-| tab    | clock/date → dashboard (the tab folds away while something hangs under it) |
-| right  | now playing (spinning cover in a progress ring, equalizer, controls) · tray · bluetooth, network (name on hover), volume, battery · notifications · power |
+| left   | start badge + app launcher, niri workspaces of *this* output (the active one as a live minimap of its columns), its active window |
+| middle | clock/date (digits roll over) → dashboard |
+| right  | now playing (cover in a progress ring, equalizer, controls) · tray · bluetooth, network (name on hover), volume, battery · notifications · power |
 
 Every widget has a panel: media controls + seek + player switcher, a dashboard,
 a notification center (with do-not-disturb), the network (wired, VPN and Wi-Fi; see below),
@@ -199,7 +202,7 @@ and yuki shows no toasts until it exits; then yuki takes the name over.
 | start button    | click: start menu · right-click: cycle themes               |
 | launcher button | click: launcher                                             |
 | media           | click: popup · middle: play/pause                           |
-| workspaces      | click: focus · scroll: up/down                              |
+| workspaces      | click: focus · minimap tile: focus that window · scroll: up/down |
 | notifications   | click: center · right-click: toggle do-not-disturb          |
 | volume          | click: popup · scroll: ±5% · middle: mute                   |
 | tray item       | click: activate · right-click: menu · middle: secondary     |
