@@ -38,11 +38,13 @@ description: Add a new widget to yuki's bar (icon/label button, optional dropdow
    Hide when unavailable with `visible: <condition>` (bind to the data, never
    to a child's `visible`).
 4. **Popup** `popups/FooPopup.qml`: `BarPopup { … }`, first row
-   `RowLayout { Layout.preferredWidth: 340; Layout.fillWidth: true }`, text
-   columns with `Layout.fillWidth: true` on their texts. Lists with
-   `ScriptModel`, expanding parts with height+opacity animation (gotchas.md).
-5. **Place it** in `bar/Bar.qml` inside the right pill group; add `Separator {}`
-   between groups, not between every item.
+   `PanelHeader { Layout.preferredWidth: 360; icon; title; subtitle }` (controls
+   as its children), groups under `SectionLabel { text: "…" }`, text columns
+   with `Layout.fillWidth: true` on their texts. Lists with `ScriptModel`,
+   expanding parts with height+opacity animation (gotchas.md).
+5. **Place it** in `bar/Bar.qml`'s `rightRow` (status icons go inside the
+   `status` well). If it has a fixed width, add it to `rightFixed` so the media
+   title budget stays right.
 6. **Optional toggle**: `Settings.d.showFoo` + a `SettingRow`/`Toggle` in
    `settings/BarPage.qml` (see the add-setting skill).
 7. **Docs**: README bar table / IPC list if you added an IPC name.

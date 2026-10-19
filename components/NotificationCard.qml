@@ -10,10 +10,8 @@ Rectangle {
     id: root
 
     required property var notif
-    // Toasts get their own background and a tighter body.
+    // Toasts keep the body shorter.
     property bool toast: false
-    // When set, the card registers a rounded blur rect of itself in this region.
-    property Region blurRegion: null
     readonly property bool critical: notif?.urgency === NotificationUrgency.Critical
     readonly property var defaultAction: notif?.actions.find(a => a.identifier === "default") ?? null
     readonly property var buttons: notif?.actions.filter(a => a.identifier !== "default") ?? []
@@ -29,22 +27,16 @@ Rectangle {
     }
     readonly property alias hovered: hover.containsMouse
 
-    implicitHeight: layout.implicitHeight + 24
-    radius: Theme.radius
-    color: toast ? Theme.popupBg : Qt.alpha(Theme.surface0, 0.6)
-    border.width: 1
-    border.color: critical ? Theme.red : toast ? Theme.barBorder : "transparent"
+    implicitHeight: layout.implicitHeight + 28
+    radius: Theme.radius + 4
+    color: critical ? Qt.alpha(Theme.red, 0.14) : hover.containsMouse ? Theme.cardHover : Theme.card
+    border.width: critical ? 1 : 0
+    border.color: Qt.alpha(Theme.red, 0.6)
 
-    Region {
-        id: blurRect
-
-        item: root
-        radius: root.radius
-    }
-
-    Component.onCompleted: {
-        if (blurRegion)
-            blurRegion.regions.push(blurRect);
+    Behavior on color {
+        ColorAnimation {
+            duration: Theme.anim
+        }
     }
 
     MouseArea {
@@ -65,46 +57,70 @@ Rectangle {
         id: layout
 
         anchors.fill: parent
-        anchors.margins: 12
+        anchors.margins: 14
         spacing: 12
 
-        // Big image if provided (album art, avatars), otherwise the app icon.
-        ClippingRectangle {
+        // Big image if provided (album art, avatars), otherwise the app icon,
+        // with the app's icon as a little badge on the image.
+        Item {
             Layout.alignment: Qt.AlignTop
-            Layout.preferredWidth: 40
-            Layout.preferredHeight: 40
-            radius: Theme.innerRadius
-            color: root.image ? "transparent" : Qt.alpha(Theme.accent, 0.15)
+            implicitWidth: 44
+            implicitHeight: 44
 
-            Image {
+            ClippingRectangle {
                 anchors.fill: parent
-                visible: root.image !== ""
-                source: root.image
-                fillMode: Image.PreserveAspectCrop
-                sourceSize: Qt.size(80, 80)
-                asynchronous: true
+                radius: 14
+                color: root.image ? "transparent" : Theme.well
+
+                Image {
+                    anchors.fill: parent
+                    visible: root.image !== ""
+                    source: root.image
+                    fillMode: Image.PreserveAspectCrop
+                    sourceSize: Qt.size(88, 88)
+                    asynchronous: true
+                }
+
+                IconImage {
+                    anchors.centerIn: parent
+                    visible: !root.image && root.appIcon !== ""
+                    implicitSize: 26
+                    source: root.appIcon
+                    asynchronous: true
+                }
+
+                Icon {
+                    anchors.centerIn: parent
+                    visible: !root.image && root.appIcon === ""
+                    text: Icons.bell
+                    size: 20
+                    color: Theme.accent
+                }
             }
 
-            IconImage {
-                anchors.centerIn: parent
-                visible: !root.image && root.appIcon !== ""
-                implicitSize: 24
-                source: root.appIcon
-                asynchronous: true
-            }
+            Rectangle {
+                anchors.right: parent.right
+                anchors.bottom: parent.bottom
+                anchors.margins: -4
+                visible: root.image !== "" && root.appIcon !== ""
+                width: 20
+                height: 20
+                radius: 10
+                color: Theme.base
 
-            Icon {
-                anchors.centerIn: parent
-                visible: !root.image && root.appIcon === ""
-                text: Icons.bell
-                color: Theme.accent
+                IconImage {
+                    anchors.centerIn: parent
+                    implicitSize: 14
+                    source: root.appIcon
+                    asynchronous: true
+                }
             }
         }
 
         ColumnLayout {
             Layout.fillWidth: true
             Layout.alignment: Qt.AlignTop
-            spacing: 2
+            spacing: 3
 
             RowLayout {
                 Layout.fillWidth: true
@@ -112,9 +128,11 @@ Rectangle {
 
                 StyledText {
                     Layout.fillWidth: true
-                    text: root.notif?.appName || "Notification"
-                    font.pixelSize: Theme.smallFontSize
-                    color: Theme.subtext0
+                    text: (root.notif?.appName || "Notification").toUpperCase()
+                    font.pixelSize: 10
+                    font.weight: Font.Bold
+                    font.letterSpacing: 1.2
+                    color: root.critical ? Theme.red : Theme.accent
                 }
 
                 StyledText {
@@ -124,10 +142,11 @@ Rectangle {
                 }
 
                 IconButton {
-                    size: 20
+                    size: 22
                     iconSize: 13
                     icon: Icons.close
                     color: Theme.subtext0
+                    opacity: hover.containsMouse || containsMouse ? 1 : 0.5
                     onClicked: root.notif.dismiss()
                 }
             }
@@ -135,7 +154,8 @@ Rectangle {
             StyledText {
                 Layout.fillWidth: true
                 text: root.notif?.summary ?? ""
-                font.weight: Font.DemiBold
+                font.pixelSize: Theme.fontSize + 1
+                font.weight: Font.Bold
                 wrapMode: Text.Wrap
                 maximumLineCount: 2
             }
@@ -148,13 +168,14 @@ Rectangle {
                 color: Theme.subtext1
                 wrapMode: Text.Wrap
                 maximumLineCount: root.toast ? 4 : 8
+                lineHeight: 1.1
                 linkColor: Theme.accent
                 onLinkActivated: link => Qt.openUrlExternally(link)
             }
 
             Flow {
                 Layout.fillWidth: true
-                Layout.topMargin: 6
+                Layout.topMargin: 8
                 visible: root.buttons.length > 0
                 spacing: 6
 
@@ -165,17 +186,35 @@ Rectangle {
                         id: action
 
                         required property var modelData
+                        required property int index
 
-                        width: label.implicitWidth + 20
-                        height: 26
+                        width: label.implicitWidth + 26
+                        height: 30
                         hoverEnabled: true
                         cursorShape: Qt.PointingHandCursor
                         onClicked: modelData.invoke()
 
+                        // The first action is the primary one.
                         Rectangle {
                             anchors.fill: parent
-                            radius: Theme.innerRadius
-                            color: action.containsMouse ? Qt.alpha(Theme.accent, 0.25) : Theme.surface1
+                            radius: height / 2
+                            color: action.containsMouse ? Theme.cardHover : Theme.well
+                            gradient: action.index === 0 ? aurora : null
+
+                            Gradient {
+                                id: aurora
+
+                                orientation: Gradient.Horizontal
+
+                                GradientStop {
+                                    position: 0
+                                    color: Theme.accent
+                                }
+                                GradientStop {
+                                    position: 1
+                                    color: Theme.accent2
+                                }
+                            }
                         }
 
                         StyledText {
@@ -184,6 +223,8 @@ Rectangle {
                             anchors.centerIn: parent
                             text: action.modelData.text
                             font.pixelSize: Theme.smallFontSize + 1
+                            font.weight: Font.DemiBold
+                            color: action.index === 0 ? Theme.onAccent : Theme.text
                         }
                     }
                 }

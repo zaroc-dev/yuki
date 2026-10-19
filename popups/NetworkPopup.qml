@@ -20,14 +20,6 @@ BarPopup {
             joinTarget = null;
     }
 
-    component SectionLabel: StyledText {
-        Layout.topMargin: 2
-        font.pixelSize: Theme.smallFontSize
-        font.weight: Font.DemiBold
-        font.letterSpacing: 0.6
-        color: Theme.overlay2
-    }
-
     component VpnRow: MouseArea {
         id: vrow
 
@@ -37,15 +29,15 @@ BarPopup {
         readonly property string error: Vpn.errors[modelData.id] ?? ""
 
         Layout.fillWidth: true
-        implicitHeight: 44
+        implicitHeight: 52
         hoverEnabled: true
         cursorShape: Qt.PointingHandCursor
         onClicked: Vpn.toggle(modelData.id)
 
         Rectangle {
             anchors.fill: parent
-            radius: Theme.innerRadius
-            color: vrow.on ? Qt.alpha(Theme.accent, 0.15) : vrow.containsMouse ? Theme.hover : "transparent"
+            radius: Theme.radius + 2
+            color: vrow.on ? Qt.alpha(Theme.accent, 0.16) : vrow.containsMouse ? Theme.cardHover : Theme.card
 
             Behavior on color {
                 ColorAnimation {
@@ -56,9 +48,9 @@ BarPopup {
 
         RowLayout {
             anchors.fill: parent
-            anchors.leftMargin: 10
-            anchors.rightMargin: 10
-            spacing: 10
+            anchors.leftMargin: 14
+            anchors.rightMargin: 12
+            spacing: 12
 
             Icon {
                 text: Icons.vpn
@@ -106,48 +98,25 @@ BarPopup {
         }
     }
 
-    RowLayout {
-        Layout.preferredWidth: 340
-        Layout.fillWidth: true
-
-        StyledText {
-            Layout.fillWidth: true
-            text: "Network"
-            font.pixelSize: 15
-            font.weight: Font.DemiBold
+    PanelHeader {
+        Layout.preferredWidth: 360
+        icon: Net.wired ? Icons.ethernet : Net.wifi ? Icons.wifi(Net.wifi.signalStrength) : Icons.networkOff
+        lit: Net.connected
+        title: Net.wired ? "Wired" : Net.wifi ? Net.wifi.name : "Offline"
+        subtitle: {
+            const vpn = Vpn.active.length > 0 ? " · VPN on" : "";
+            if (Net.wired)
+                return `${Net.wired.name}${vpn}`;
+            if (Net.wifi)
+                return `Wi-Fi · ${Net.wifi.signalStrength >= 0 ? Math.round(Net.wifi.signalStrength * 100) + "%" : "connected"}${vpn}`;
+            return Net.hasWifi && !Networking.wifiEnabled ? "Wi-Fi is off" : "Not connected";
         }
 
-        // Wi-Fi radio toggle.
-        MouseArea {
-            id: toggle
-
+        // Wi-Fi radio.
+        Toggle {
             visible: Net.hasWifi
-            implicitWidth: 40
-            implicitHeight: 22
-            cursorShape: Qt.PointingHandCursor
-            onClicked: Networking.wifiEnabled = !Networking.wifiEnabled
-
-            Rectangle {
-                anchors.fill: parent
-                radius: height / 2
-                color: Networking.wifiEnabled ? Theme.accent : Theme.surface1
-
-                Rectangle {
-                    x: Networking.wifiEnabled ? parent.width - width - 3 : 3
-                    anchors.verticalCenter: parent.verticalCenter
-                    width: 16
-                    height: 16
-                    radius: 8
-                    color: Networking.wifiEnabled ? Theme.onAccent : Theme.overlay1
-
-                    Behavior on x {
-                        NumberAnimation {
-                            duration: Theme.anim
-                            easing.type: Easing.OutCubic
-                        }
-                    }
-                }
-            }
+            checked: Networking.wifiEnabled
+            onToggled: v => Networking.wifiEnabled = v
         }
     }
 
@@ -155,19 +124,28 @@ BarPopup {
     Repeater {
         model: Net.devices.filter(d => d.type === DeviceType.Wired)
 
-        RowLayout {
+        Rectangle {
             id: wired
 
             required property var modelData
 
             Layout.fillWidth: true
+            implicitHeight: wiredRow.implicitHeight + 20
+            radius: Theme.radius + 2
+            color: Theme.card
+
+            RowLayout {
+            id: wiredRow
+
+            anchors.fill: parent
+            anchors.margins: 10
             spacing: 12
 
             Rectangle {
                 implicitWidth: 36
                 implicitHeight: 36
-                radius: 18
-                color: wired.modelData.connected ? Qt.alpha(Theme.accent, 0.18) : Theme.surface0
+                radius: 12
+                color: wired.modelData.connected ? Qt.alpha(Theme.accent, 0.18) : Theme.well
 
                 Icon {
                     anchors.centerIn: parent
@@ -198,6 +176,7 @@ BarPopup {
                     }
                 }
             }
+            }
         }
     }
 
@@ -212,11 +191,23 @@ BarPopup {
         VpnRow {}
     }
 
-    Rectangle {
-        Layout.fillWidth: true
-        implicitHeight: 1
+    SectionLabel {
         visible: Net.hasWifi
-        color: Theme.surface0
+        text: "Wi-Fi"
+
+        IconButton {
+            visible: Networking.wifiEnabled
+            size: 26
+            iconSize: 14
+            icon: Icons.refresh
+            color: Theme.subtext0
+            onClicked: {
+                if (Net.wifiDevice) {
+                    Net.wifiDevice.scannerEnabled = false;
+                    Net.wifiDevice.scannerEnabled = true;
+                }
+            }
+        }
     }
 
     StyledText {
@@ -250,7 +241,7 @@ BarPopup {
                 id: row
 
                 Layout.fillWidth: true
-                implicitHeight: 36
+                implicitHeight: 40
                 hoverEnabled: true
                 cursorShape: Qt.PointingHandCursor
                 onClicked: {
@@ -265,14 +256,16 @@ BarPopup {
 
                 Rectangle {
                     anchors.fill: parent
-                    radius: Theme.innerRadius
-                    color: net.modelData.connected ? Qt.alpha(Theme.accent, 0.15) : row.containsMouse || net.joining ? Theme.hover : "transparent"
+                    radius: height / 2
+                    color: net.modelData.connected ? Qt.alpha(Theme.accent, 0.16) : row.containsMouse || net.joining ? Theme.hover : "transparent"
+                    border.width: net.modelData.connected ? 1 : 0
+                    border.color: Qt.alpha(Theme.accent, 0.35)
                 }
 
                 RowLayout {
                     anchors.fill: parent
-                    anchors.leftMargin: 10
-                    anchors.rightMargin: 4
+                    anchors.leftMargin: 14
+                    anchors.rightMargin: 8
                     spacing: 10
 
                     Icon {
@@ -284,6 +277,7 @@ BarPopup {
                         Layout.fillWidth: true
                         text: net.armed ? "Click again to forget" : net.modelData.name
                         color: net.armed ? Theme.red : net.modelData.connected ? Theme.accent : Theme.text
+                        font.weight: net.modelData.connected ? Font.DemiBold : Font.Normal
                     }
 
                     StyledText {
@@ -341,20 +335,22 @@ BarPopup {
 
         Layout.fillWidth: true
         visible: Net.hasWifi && Networking.wifiEnabled
-        implicitHeight: 32
+        implicitHeight: 38
         hoverEnabled: true
         cursorShape: Qt.PointingHandCursor
         onClicked: root.joinTarget = root.joinTarget === "add" ? null : "add"
 
         Rectangle {
             anchors.fill: parent
-            radius: Theme.innerRadius
+            radius: height / 2
             color: addRow.containsMouse ? Theme.hover : "transparent"
+            border.width: 1
+            border.color: Theme.rim
         }
 
         RowLayout {
             anchors.fill: parent
-            anchors.leftMargin: 10
+            anchors.leftMargin: 14
             spacing: 10
 
             Icon {

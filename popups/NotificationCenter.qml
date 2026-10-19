@@ -14,17 +14,12 @@ BarPopup {
             Notifs.popups = [];
     }
 
-    RowLayout {
-        Layout.preferredWidth: 380
-        Layout.fillWidth: true
-        spacing: 4
-
-        StyledText {
-            Layout.fillWidth: true
-            text: "Notifications"
-            font.pixelSize: 15
-            font.weight: Font.DemiBold
-        }
+    PanelHeader {
+        Layout.preferredWidth: 400
+        icon: Notifs.dnd ? Icons.bellOff : Icons.bellOutline
+        lit: !Notifs.dnd
+        title: "Notifications"
+        subtitle: Notifs.dnd ? "Do not disturb" : Notifs.count > 0 ? `${Notifs.count} unread` : "Nothing new"
 
         IconButton {
             icon: Notifs.dnd ? Icons.bellOff : Icons.bell
@@ -51,23 +46,34 @@ BarPopup {
 
     Item {
         Layout.fillWidth: true
-        Layout.preferredHeight: 120
+        Layout.preferredHeight: 170
         visible: Notifs.count === 0
 
         Column {
             anchors.centerIn: parent
-            spacing: 6
+            spacing: 4
 
             Icon {
                 anchors.horizontalCenter: parent.horizontalCenter
                 text: Icons.bellOutline
-                size: 32
+                size: 44
                 color: Theme.surface2
             }
 
             StyledText {
                 anchors.horizontalCenter: parent.horizontalCenter
+                topPadding: 8
                 text: "All caught up"
+                font.family: Theme.displayFont
+                font.pixelSize: 17
+                font.weight: Font.ExtraBold
+                color: Theme.subtext1
+            }
+
+            StyledText {
+                anchors.horizontalCenter: parent.horizontalCenter
+                text: "New notifications land here."
+                font.pixelSize: Theme.smallFontSize + 1
                 color: Theme.overlay1
             }
         }

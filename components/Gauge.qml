@@ -8,6 +8,8 @@ Item {
 
     property real value: 0
     property string icon
+    // Shown instead of the icon when set (e.g. a percentage).
+    property string text
     property color color: Theme.accent
     property real size: 56
     property real thickness: 5
@@ -21,7 +23,7 @@ Item {
 
         ShapePath {
             fillColor: "transparent"
-            strokeColor: Qt.alpha(Theme.text, 0.1)
+            strokeColor: Theme.well
             strokeWidth: root.thickness
             capStyle: ShapePath.RoundCap
 
@@ -61,8 +63,21 @@ Item {
 
     Icon {
         anchors.centerIn: parent
+        visible: root.text === ""
         text: root.icon
         size: root.size * 0.34
         color: root.color
+    }
+
+    StyledText {
+        anchors.centerIn: parent
+        visible: root.text !== ""
+        text: root.text
+        font.family: Theme.displayFont
+        font.pixelSize: Math.round(root.size * 0.24)
+        font.weight: Font.ExtraBold
+        font.features: {
+            "tnum": 1
+        }
     }
 }

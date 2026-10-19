@@ -20,10 +20,10 @@ Item {
         anchors.centerIn: parent
         width: Math.min(row.contentWidth, root.width - Theme.gap * 8) + 24
         height: column.implicitHeight + 24
-        radius: Theme.radius + 6
+        radius: 28
         color: Theme.popupBg
         border.width: 1
-        border.color: Theme.barBorder
+        border.color: Theme.rim
         opacity: 0
         scale: 0.96
         Component.onCompleted: {
@@ -71,10 +71,19 @@ Item {
                 preferredHighlightEnd: width - root.tile
 
                 highlight: Rectangle {
-                    radius: Theme.radius + 2
-                    color: Qt.alpha(Theme.accent, 0.18)
+                    radius: 20
                     border.width: 1.5
                     border.color: Qt.alpha(Theme.accent, 0.8)
+                    gradient: Gradient {
+                        GradientStop {
+                            position: 0
+                            color: Qt.alpha(Theme.accent, 0.26)
+                        }
+                        GradientStop {
+                            position: 1
+                            color: Qt.alpha(Theme.accent2, 0.12)
+                        }
+                    }
                 }
 
                 delegate: MouseArea {
@@ -95,7 +104,7 @@ Item {
 
                     Rectangle {
                         anchors.fill: parent
-                        radius: Theme.radius + 2
+                        radius: 20
                         color: card.containsMouse && !card.selected ? Theme.hover : "transparent"
                     }
 

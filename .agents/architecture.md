@@ -9,7 +9,8 @@ shell.qml        root ShellRoot: Backdrop/Wallpaper per screen, ColorExtractor, 
 config/          Settings (persisted JSON), Theme (palette), Wallpapers, Icons   ← no deps on services
 services/        singletons: Niri, Apps, Audio, Media, Net, Vpn, Notifs, Lock, Power, Ui,
                  Templates, Clipboard, Screenshots, Osd, Brightness, Idle
-components/      reusable UI: Pill, BarButton, BarPopup, IconButton, Icon, StyledText,
+components/      reusable UI: Surface, SurfaceRegion, BarPopup, DropSheet, BarButton,
+                 PanelHeader, SectionLabel, IconButton, Icon, StyledText,
                  StyledSlider, Toggle, Segmented, TextField, AppIcon, Avatar, NotificationCard, …
 bar/             Bar.qml (one PanelWindow per screen) + one file per widget
 popups/          BarPopup-based dropdowns + overlay windows (Launcher, ClipboardPanel,
@@ -29,22 +30,43 @@ Import direction: `config` ← `services` ← `components` ← `bar`/`popups`/`s
 
 ## Bar & popups
 
-- `bar/Bar.qml` is a top-anchored `PanelWindow` per screen with four pills:
-  left (start, launcher), media (own pill, visible when a player exists),
-  center (clock, workspaces, active window), right (tray | notifications |
-  bluetooth, network, volume, battery | power). `mask` and `BackgroundEffect`
-  regions cover only the pills.
+- `bar/Bar.qml` is a top-anchored `PanelWindow` per screen drawn as one
+  `Shape` (SVG path from `outline()`): a full-width strip (`Theme.barHeight`),
+  concave screen-corner fillets at both ends (`Theme.fillet`) and the clock tab
+  hanging from the middle (`Theme.tabDepth`, smooth cubic shoulders). The window
+  is taller than its exclusive zone (`barHeight`) so the fillets/tab fit; `mask`
+  and blur cover only strip + tab. Left row: start, launcher, workspaces, active
+  window. Right row: media, tray, a `Theme.well` with bluetooth/network/volume/
+  battery, notifications, power. Title budgets per side come from fixed parts only.
+- **Fused surfaces.** Everything that hangs from the bar is a `components/Surface`
+  (square top + concave top fillets, rounded bottom) placed flush at
+  `y = barHeight`, with the same fill (`Theme.popupBg` = `barBg`), so the join
+  vanishes. Snapped to a screen edge, that side runs flat and ends in an edge
+  fillet. The bar gives up what it covers:
+  - `Ui.shownPopup` (visible popup incl. its closing animation): a snapped one
+    hides that bar corner, instantly; at reveal 0 the panel's edge fillet sits
+    exactly where the corner was (both radius `Theme.fillet`), so the handoff
+    is invisible. Its x-range over the tab folds the tab away (animated).
+  - `Ui.toastScreen` (toast drawer, snapped right) hides the right corner;
+    `Ui.osdScreen` / `Ui.sheetScreen` (OSD, launcher/clipboard `DropSheet`)
+    fold the tab.
+  - Blur for a Surface: `SurfaceRegion` (child `Region`s use window coordinates;
+    a parent region's x/y doesn't offset them, hence `bodyX/bodyY`).
 - A full-size pass-through `MouseArea` (z 1000, `accepted = false`) calls
   `Ui.dismissPopup()`: the xdg-popup grab only dismisses on clicks into *other*
   clients, so presses on yuki's own surfaces must close popups themselves.
   `Wallpaper.qml` does the same for desktop clicks.
 - Every dropdown extends `components/BarPopup.qml` (a `PopupWindow`):
-  - `toggle(fromPointer)`: one popup at a time (`Ui.activePopup`), positioned
-    under the target, clamped to the screen gutters, hanging from the pill bottom.
+  - `toggle(fromPointer)`: one popup at a time (`Ui.activePopup`), centered
+    under the target and hanging from the bar's bottom edge; within
+    `fillet + 4·gap` of a screen edge it snaps to it (`snapLeft/Right`).
+  - Opens by growing out of the bar (`reveal` 0→1 scales the visible body
+    height; content fades/slides in) and folds back on close.
+  - `backdrop`: full-bleed items clipped to the panel's shape (media art wash).
   - Grabs focus only when opened by pointer (Wayland grants grabs only in
     response to input). IPC-opened popups don't grab and close on niri focus change.
   - Animated size: frame glides (`SmoothedAnimation`) to `targetWidth/Height`;
-    the window keeps the larger size until a shrink finishes; `mask` = frame.
+    the window keeps the larger size until a shrink finishes; `mask` = body.
   - Body is a `ColumnLayout` with a fixed width: header rows need
     `Layout.fillWidth: true` (see gotchas).
   - `name` makes it reachable via `ipc call bar toggle <name>`.
@@ -119,7 +141,8 @@ output matches noctalia/matugen closely (verified: `#b3c5ff` vs `#b4c5ff`).
 
 ## Windows & layers (niri namespaces)
 
-`yuki-bar` (Top), `yuki-wallpaper` + `yuki-backdrop` + `yuki-color-extractor`
+`yuki-bar` (Top; `yuki-osd`, `yuki-notifications` and the sheets sit flush under
+it with exclusive zone 0), `yuki-wallpaper` + `yuki-backdrop` + `yuki-color-extractor`
 (Background), `yuki-notifications`, `yuki-osd`, `yuki-launcher`,
 `yuki-clipboard`, `yuki-settings`, `yuki-polkit`, `yuki-switcher`, `yuki-lock-preview` (Overlay). The generated
 niri.kdl places `yuki-backdrop` within niri's overview backdrop. Toasts and OSD

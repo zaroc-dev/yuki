@@ -21,8 +21,8 @@ Item {
         id: row
 
         anchors.fill: parent
-        anchors.leftMargin: 14
-        anchors.rightMargin: 14
+        anchors.leftMargin: 16
+        anchors.rightMargin: 16
         spacing: 14
 
         AppIcon {
@@ -45,6 +45,7 @@ Item {
             StyledText {
                 Layout.fillWidth: true
                 text: root.label
+                font.weight: Font.Medium
             }
 
             StyledText {

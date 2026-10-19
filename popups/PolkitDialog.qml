@@ -40,8 +40,8 @@ Scope {
         property string text
         property bool filled: false
 
-        implicitWidth: label.implicitWidth + 36
-        implicitHeight: 38
+        implicitWidth: label.implicitWidth + 40
+        implicitHeight: 42
         hoverEnabled: true
         cursorShape: Qt.PointingHandCursor
         opacity: enabled ? 1 : 0.5
@@ -49,11 +49,36 @@ Scope {
         Rectangle {
             anchors.fill: parent
             radius: height / 2
-            color: button.filled ? (button.containsMouse ? Qt.lighter(Theme.accent, 1.1) : Theme.accent) : button.pressed ? Theme.pressed : button.containsMouse ? Theme.hover : Qt.alpha(Theme.surface0, 0.7)
+            color: button.pressed ? Theme.pressed : button.containsMouse ? Theme.cardHover : Theme.card
+            scale: button.pressed ? 0.96 : 1
 
             Behavior on color {
                 ColorAnimation {
                     duration: Theme.anim
+                }
+            }
+            Behavior on scale {
+                NumberAnimation {
+                    duration: 100
+                }
+            }
+
+            // Primary: the aurora.
+            Rectangle {
+                anchors.fill: parent
+                radius: parent.radius
+                visible: button.filled
+                gradient: Gradient {
+                    orientation: Gradient.Horizontal
+
+                    GradientStop {
+                        position: 0
+                        color: Theme.accent
+                    }
+                    GradientStop {
+                        position: 1
+                        color: Theme.accent2
+                    }
                 }
             }
         }
@@ -148,12 +173,12 @@ Scope {
 
                 anchors.horizontalCenter: parent.horizontalCenter
                 y: parent.height * 0.3
-                width: 420
-                height: column.implicitHeight + 40
-                radius: Theme.radius + 6
+                width: 440
+                height: column.implicitHeight + 48
+                radius: 30
                 color: Theme.popupBg
                 border.width: 1
-                border.color: Theme.barBorder
+                border.color: Theme.rim
                 opacity: 0
                 scale: 0.96
                 Component.onCompleted: {
@@ -192,7 +217,7 @@ Scope {
                     id: column
 
                     anchors.fill: parent
-                    anchors.margins: 20
+                    anchors.margins: 24
                     spacing: 14
 
                     RowLayout {
@@ -201,10 +226,12 @@ Scope {
 
                         Rectangle {
                             Layout.alignment: Qt.AlignTop
-                            implicitWidth: 44
-                            implicitHeight: 44
-                            radius: width / 2
-                            color: Qt.alpha(Theme.accent, 0.15)
+                            implicitWidth: 48
+                            implicitHeight: 48
+                            radius: 16
+                            color: Qt.alpha(Theme.accent, 0.18)
+                            border.width: 1
+                            border.color: Qt.alpha(Theme.accent, 0.35)
 
                             AppIcon {
                                 anchors.centerIn: parent

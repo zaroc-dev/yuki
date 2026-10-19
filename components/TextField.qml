@@ -27,11 +27,11 @@ Rectangle {
     }
 
     implicitWidth: 240
-    implicitHeight: 36
-    radius: Theme.innerRadius
-    color: Theme.surface0
-    border.width: 1
-    border.color: input.activeFocus ? Theme.accent : "transparent"
+    implicitHeight: 40
+    radius: height / 2
+    color: Theme.well
+    border.width: input.activeFocus ? 1.5 : 1
+    border.color: input.activeFocus ? Theme.accent : Theme.rim
 
     Behavior on border.color {
         ColorAnimation {
@@ -43,7 +43,7 @@ Rectangle {
         id: leading
 
         anchors.left: parent.left
-        anchors.leftMargin: 10
+        anchors.leftMargin: 14
         anchors.verticalCenter: parent.verticalCenter
         visible: root.icon !== ""
         text: root.icon
@@ -56,8 +56,8 @@ Rectangle {
 
         anchors.left: root.icon !== "" ? leading.right : parent.left
         anchors.right: eye.visible ? eye.left : parent.right
-        anchors.leftMargin: root.icon !== "" ? 8 : 10
-        anchors.rightMargin: eye.visible ? 2 : 10
+        anchors.leftMargin: root.icon !== "" ? 9 : 16
+        anchors.rightMargin: eye.visible ? 2 : 16
         anchors.verticalCenter: parent.verticalCenter
         echoMode: root.password && !root.reveal ? TextInput.Password : TextInput.Normal
         readOnly: root.readOnly
@@ -85,7 +85,7 @@ Rectangle {
         id: eye
 
         anchors.right: parent.right
-        anchors.rightMargin: 4
+        anchors.rightMargin: 6
         anchors.verticalCenter: parent.verticalCenter
         visible: root.password
         size: 28

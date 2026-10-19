@@ -22,10 +22,10 @@ Item {
         y: parent.height * 0.18
         width: Math.min(560, root.width - Theme.gap * 4)
         height: column.implicitHeight + 24
-        radius: Theme.radius + 4
+        radius: 28
         color: Theme.popupBg
         border.width: 1
-        border.color: Theme.barBorder
+        border.color: Theme.rim
         opacity: 0
         scale: 0.96
         Component.onCompleted: {

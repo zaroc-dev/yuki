@@ -1,9 +1,10 @@
 # yuki
 
-A Quickshell (QML) desktop shell for the niri compositor on NixOS: floating
-"pill" bar, start menu, launcher, notifications, lock screen, per-output
-wallpapers with Material You colors, clipboard history, screenshots, OSD,
-Bluetooth/network/audio popups, settings panel. Ships SDDM + Plymouth themes in
+A Quickshell (QML) desktop shell for the niri compositor on NixOS: a frosted
+bar fused to the top screen edge that every panel grows out of, start menu,
+launcher, notifications, lock screen, per-output wallpapers with Material You
+colors, clipboard history, screenshots, OSD, Bluetooth/network/audio popups,
+settings panel. Ships SDDM + Plymouth themes in
 the same design and a Nix flake (package, home-manager and NixOS modules).
 
 Read this file first. Deeper context lives in `.agents/`:

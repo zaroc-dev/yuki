@@ -7,8 +7,7 @@ import qs.popups
 BarButton {
     id: root
 
-    hPadding: 7
-    spacing: 4
+    hPadding: 8
     active: popup.visible
     onClicked: e => {
         if (e.button === Qt.RightButton)
@@ -17,19 +16,61 @@ BarButton {
             popup.toggle();
     }
 
-    Icon {
+    Item {
         anchors.verticalCenter: parent.verticalCenter
-        text: Notifs.dnd ? Icons.bellOff : Notifs.count > 0 ? Icons.bellBadge : Icons.bellOutline
-        color: Notifs.dnd ? Theme.overlay1 : Notifs.count > 0 ? Theme.accent : Theme.text
-    }
+        width: bell.implicitWidth
+        height: bell.implicitHeight
 
-    StyledText {
-        anchors.verticalCenter: parent.verticalCenter
-        visible: Notifs.count > 0
-        text: Notifs.count
-        font.pixelSize: Theme.smallFontSize
-        font.weight: Font.DemiBold
-        color: Theme.subtext1
+        Icon {
+            id: bell
+
+            anchors.centerIn: parent
+            text: Notifs.dnd ? Icons.bellOff : Icons.bellOutline
+            color: Notifs.dnd ? Theme.overlay1 : Theme.text
+        }
+
+        // Count badge, popping in on the bell's shoulder.
+        Rectangle {
+            x: parent.width - width / 2 - 1
+            y: -5
+            width: Math.max(height, badgeCount.implicitWidth + 7)
+            height: 14
+            radius: 7
+            visible: scale > 0
+            scale: Notifs.count > 0 && !Notifs.dnd ? 1 : 0
+            gradient: Gradient {
+                orientation: Gradient.Horizontal
+
+                GradientStop {
+                    position: 0
+                    color: Theme.accent
+                }
+                GradientStop {
+                    position: 1
+                    color: Theme.accent2
+                }
+            }
+            border.width: 2
+            border.color: Theme.base
+
+            Behavior on scale {
+                NumberAnimation {
+                    duration: Theme.animSlow
+                    easing.type: Easing.OutBack
+                }
+            }
+
+            StyledText {
+                id: badgeCount
+
+                anchors.centerIn: parent
+                text: Notifs.count > 99 ? "99+" : Notifs.count
+                font.family: Theme.displayFont
+                font.pixelSize: 9
+                font.weight: Font.Black
+                color: Theme.onAccent
+            }
+        }
     }
 
     NotificationCenter {

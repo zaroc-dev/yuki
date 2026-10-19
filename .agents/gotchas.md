@@ -38,6 +38,12 @@ elsewhere.
   bind to the cached result.
 - **`property alias x: someVarObject.y`** is invalid; aliases need `id.property`.
 - **Inline `component`s**: declare them at the document root.
+- **An `id` shadows a property of the same name.** QML resolves ids before the
+  scope object's properties: a label with `id: count` inside a `ListView`'s file
+  made the list's own `visible: count > 0` compare an object (the launcher list
+  never showed). Don't name ids after properties you read unqualified.
+- **`font.pixelSize` is an int**: `8.5` fails the whole component ("Invalid
+  property assignment: int expected"), and with it the bar.
 - **Nerd Font glyphs are off-center** in their advance box. `Icon` shifts by the
   ink (`TextMetrics.tightBoundingRect`); don't fight it with manual margins.
 
@@ -73,6 +79,11 @@ elsewhere.
   the config *path*: store builds would get empty settings. Pragmas only apply
   at process start (restart, not reload). The first reload after changing it
   on a running instance failed to resolve `qs.*` modules: restart instead.
+- **Fused surfaces need equal fillets.** The bar hides a corner the instant a
+  snapped panel shows; that is only seamless because the panel's edge fillet
+  has the same radius (`Theme.fillet`) and starts at the corner's position.
+- The file watcher sometimes misses a write (an edited popup kept its old
+  content across several "Configuration Loaded"); `ipc call shell reload` fixes it.
 - Soft reloads reuse windows; stale layer surfaces can survive
   (`ipc call shell reload true` for a hard reload).
 - **Soft reload, then lock preview, crashed Qt** (segfault in

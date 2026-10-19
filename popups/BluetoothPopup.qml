@@ -32,14 +32,6 @@ BarPopup {
             adapter.discovering = false;
     }
 
-    component SectionLabel: StyledText {
-        Layout.topMargin: 2
-        font.pixelSize: Theme.smallFontSize
-        font.weight: Font.DemiBold
-        font.letterSpacing: 0.6
-        color: Theme.overlay2
-    }
-
     component DeviceRow: MouseArea {
         id: row
 
@@ -50,7 +42,7 @@ BarPopup {
         property bool armed: false
 
         Layout.fillWidth: true
-        implicitHeight: 48
+        implicitHeight: 56
         hoverEnabled: true
         cursorShape: Qt.PointingHandCursor
         onClicked: {
@@ -84,8 +76,10 @@ BarPopup {
 
         Rectangle {
             anchors.fill: parent
-            radius: Theme.innerRadius + 2
-            color: row.dev.connected ? Qt.alpha(Theme.accent, 0.14) : row.containsMouse ? Theme.hover : "transparent"
+            radius: 18
+            color: row.dev.connected ? Qt.alpha(Theme.accent, 0.14) : row.containsMouse ? Theme.cardHover : Theme.card
+            border.width: row.dev.connected ? 1 : 0
+            border.color: Qt.alpha(Theme.accent, 0.35)
 
             Behavior on color {
                 ColorAnimation {
@@ -101,10 +95,24 @@ BarPopup {
             spacing: 12
 
             Rectangle {
-                implicitWidth: 32
-                implicitHeight: 32
-                radius: 16
-                color: row.dev.connected ? Theme.accent : Qt.alpha(Theme.surface1, 0.8)
+                implicitWidth: 36
+                implicitHeight: 36
+                radius: 13
+                color: Theme.well
+                gradient: row.dev.connected ? aurora : null
+
+                Gradient {
+                    id: aurora
+
+                    GradientStop {
+                        position: 0
+                        color: Theme.accent
+                    }
+                    GradientStop {
+                        position: 1
+                        color: Theme.accent2
+                    }
+                }
 
                 Icon {
                     anchors.centerIn: parent
@@ -197,29 +205,12 @@ BarPopup {
     }
 
     // ---------- header ----------
-    RowLayout {
-        Layout.preferredWidth: 340
-        Layout.fillWidth: true
-        spacing: 8
-
-        ColumnLayout {
-            Layout.fillWidth: true
-            spacing: 0
-
-            StyledText {
-                Layout.fillWidth: true
-                text: "Bluetooth"
-                font.pixelSize: 15
-                font.weight: Font.DemiBold
-            }
-
-            StyledText {
-                Layout.fillWidth: true
-                text: root.adapter?.name ?? "No adapter"
-                font.pixelSize: Theme.smallFontSize
-                color: Theme.subtext0
-            }
-        }
+    PanelHeader {
+        Layout.preferredWidth: 360
+        icon: !root.on ? Icons.bluetoothOff : root.connected.length > 0 ? Icons.bluetoothConnected : Icons.bluetooth
+        lit: root.on
+        title: "Bluetooth"
+        subtitle: !root.on ? "Off" : root.connected.length > 0 ? `${root.connected.length} connected · ${root.adapter?.name ?? ""}` : root.adapter?.name ?? "No adapter"
 
         IconButton {
             id: scanBtn
@@ -250,15 +241,9 @@ BarPopup {
         }
     }
 
-    StyledText {
-        visible: !root.on
-        text: "Bluetooth is off"
-        color: Theme.overlay1
-    }
-
     SectionLabel {
         visible: root.on && root.connected.length > 0
-        text: "CONNECTED"
+        text: "Connected"
     }
 
     Repeater {
@@ -269,7 +254,7 @@ BarPopup {
 
     SectionLabel {
         visible: root.on && root.paired.length > 0
-        text: "PAIRED"
+        text: "Paired"
     }
 
     Repeater {
@@ -280,7 +265,7 @@ BarPopup {
 
     SectionLabel {
         visible: root.on && (root.adapter?.discovering ?? false)
-        text: root.nearby.length > 0 ? "NEARBY" : "SEARCHING…"
+        text: root.nearby.length > 0 ? "Nearby" : "Searching…"
     }
 
     Repeater {

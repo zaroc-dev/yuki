@@ -7,11 +7,11 @@ import qs.config
 import qs.components
 import qs.services
 
-// Clipboard history overlay on the focused output.
+// Clipboard history on the focused output, as a sheet out of the bar.
 LazyLoader {
     active: Ui.clipboardOpen
 
-    PanelWindow {
+    DropSheet {
         id: win
 
         readonly property var results: Clipboard.search(search.text)
@@ -29,246 +29,263 @@ LazyLoader {
 
         Component.onCompleted: Clipboard.refresh()
 
-        screen: Quickshell.screens.find(s => s.name === Niri.focusedOutput) ?? Quickshell.screens[0]
-        anchors {
-            top: true
-            bottom: true
-            left: true
-            right: true
-        }
-        color: "transparent"
-        exclusionMode: ExclusionMode.Ignore
-        WlrLayershell.layer: WlrLayer.Overlay
-        WlrLayershell.keyboardFocus: WlrKeyboardFocus.Exclusive
+        bodyWidth: 620
         WlrLayershell.namespace: "yuki-clipboard"
-        BackgroundEffect.blurRegion: Region {
-            item: Theme.blur ? box : null
-            radius: box.radius
-        }
+        onDismissed: close()
 
         Rectangle {
-            anchors.fill: parent
-            color: Qt.alpha(Theme.crust, 0.35)
-            opacity: 0
-            Component.onCompleted: opacity = 1
-
-            Behavior on opacity {
-                NumberAnimation {
-                    duration: Theme.anim
-                }
-            }
-        }
-
-        MouseArea {
-            anchors.fill: parent
-            onClicked: win.close()
-        }
-
-        Rectangle {
-            id: box
-
-            anchors.horizontalCenter: parent.horizontalCenter
-            y: parent.height * 0.16
-            width: 600
-            height: column.implicitHeight + 24
-            radius: Theme.radius + 4
-            color: Theme.popupBg
+            Layout.fillWidth: true
+            implicitHeight: 58
+            radius: 20
+            color: Theme.well
             border.width: 1
-            border.color: Theme.barBorder
-            opacity: 0
-            scale: 0.96
-            Component.onCompleted: {
-                opacity = 1;
-                scale = 1;
-            }
+            border.color: Qt.alpha(Theme.accent, 0.35)
 
-            Behavior on opacity {
-                NumberAnimation {
-                    duration: Theme.anim
-                }
-            }
-            Behavior on scale {
-                NumberAnimation {
-                    duration: Theme.anim
-                    easing.type: Easing.OutCubic
-                }
-            }
-            Behavior on height {
-                SmoothedAnimation {
-                    duration: 200
-                    velocity: -1
-                }
-            }
-
-            MouseArea {
+            RowLayout {
                 anchors.fill: parent
+                anchors.leftMargin: 18
+                anchors.rightMargin: 10
+                spacing: 12
+
+                Icon {
+                    text: Icons.clipboard
+                    size: 22
+                    color: Theme.accent
+                }
+
+                TextInput {
+                    id: search
+
+                    Layout.fillWidth: true
+                    color: Theme.text
+                    selectionColor: Qt.alpha(Theme.accent, 0.4)
+                    font.family: Theme.displayFont
+                    font.pixelSize: 21
+                    font.weight: Font.Bold
+                    focus: true
+                    onTextChanged: list.currentIndex = 0
+
+                    Keys.onEscapePressed: win.close()
+                    Keys.onReturnPressed: win.pick(win.results[list.currentIndex])
+                    Keys.onEnterPressed: win.pick(win.results[list.currentIndex])
+                    Keys.onDownPressed: list.incrementCurrentIndex()
+                    Keys.onUpPressed: list.decrementCurrentIndex()
+                    Keys.onTabPressed: list.incrementCurrentIndex()
+                    Keys.onBacktabPressed: list.decrementCurrentIndex()
+                    Keys.onDeletePressed: {
+                        const e = win.results[list.currentIndex];
+                        if (e)
+                            Clipboard.remove(e);
+                    }
+
+                    StyledText {
+                        anchors.verticalCenter: parent.verticalCenter
+                        visible: !search.text
+                        text: "Search the clipboard…"
+                        color: Theme.overlay0
+                        font.family: Theme.displayFont
+                        font.pixelSize: 21
+                        font.weight: Font.Bold
+                    }
+                }
+
+                IconButton {
+                    icon: Icons.trash
+                    color: containsMouse ? Theme.red : Theme.subtext0
+                    enabled: Clipboard.entries.length > 0
+                    onClicked: Clipboard.wipe()
+                }
             }
+        }
 
-            ColumnLayout {
-                id: column
+        ListView {
+            id: list
 
-                anchors.left: parent.left
-                anchors.right: parent.right
-                anchors.top: parent.top
-                anchors.margins: 12
-                spacing: 10
+            Layout.fillWidth: true
+            Layout.preferredHeight: Math.min(contentHeight, 460)
+            visible: count > 0
+            clip: true
+            spacing: 2
+            model: ScriptModel {
+                values: win.results
+            }
+            boundsBehavior: Flickable.StopAtBounds
+            highlightMoveDuration: 160
+            highlightResizeDuration: 120
+            // The ScriptModel fills in after creation; start on the newest entry.
+            onCountChanged: {
+                if (currentIndex < 0 && count > 0)
+                    currentIndex = 0;
+            }
+            highlight: Rectangle {
+                radius: 18
+                gradient: Gradient {
+                    orientation: Gradient.Horizontal
+
+                    GradientStop {
+                        position: 0
+                        color: Qt.alpha(Theme.accent, 0.24)
+                    }
+                    GradientStop {
+                        position: 1
+                        color: Qt.alpha(Theme.accent2, 0.06)
+                    }
+                }
 
                 Rectangle {
-                    Layout.fillWidth: true
-                    implicitHeight: 44
-                    radius: Theme.radius
-                    color: Theme.surface0
+                    anchors.verticalCenter: parent.verticalCenter
+                    width: 3
+                    height: parent.height * 0.5
+                    radius: 1.5
+                    color: Theme.accent
+                }
+            }
 
-                    RowLayout {
-                        anchors.fill: parent
-                        anchors.leftMargin: 14
-                        anchors.rightMargin: 6
-                        spacing: 10
+            delegate: MouseArea {
+                id: item
+
+                required property var modelData
+                required property int index
+                readonly property bool current: ListView.isCurrentItem
+
+                width: ListView.view.width
+                height: modelData.isImage ? 80 : 50
+                hoverEnabled: true
+                cursorShape: Qt.PointingHandCursor
+                onEntered: list.currentIndex = index
+                onClicked: win.pick(modelData)
+                Component.onCompleted: {
+                    if (modelData.isImage)
+                        Clipboard.thumb(modelData);
+                }
+
+                RowLayout {
+                    anchors.fill: parent
+                    anchors.leftMargin: 14
+                    anchors.rightMargin: 8
+                    spacing: 14
+
+                    ClippingRectangle {
+                        visible: item.modelData.isImage
+                        Layout.preferredWidth: 104
+                        Layout.preferredHeight: 62
+                        radius: 12
+                        color: Theme.card
+
+                        Image {
+                            anchors.fill: parent
+                            source: Clipboard.thumbs[item.modelData.id] ?? ""
+                            fillMode: Image.PreserveAspectCrop
+                            sourceSize: Qt.size(208, 124)
+                            asynchronous: true
+                        }
+                    }
+
+                    Rectangle {
+                        visible: !item.modelData.isImage
+                        implicitWidth: 32
+                        implicitHeight: 32
+                        radius: 11
+                        color: item.current ? Qt.alpha(Theme.accent, 0.2) : Theme.card
 
                         Icon {
-                            text: Icons.clipboard
-                            size: 18
-                            color: Theme.accent
+                            anchors.centerIn: parent
+                            text: Icons.text
+                            size: 15
+                            color: item.current ? Theme.accent : Theme.overlay1
                         }
+                    }
 
-                        TextInput {
-                            id: search
+                    StyledText {
+                        Layout.fillWidth: true
+                        text: item.modelData.preview
+                        maximumLineCount: 2
+                        wrapMode: Text.WrapAnywhere
+                        color: item.current ? Theme.text : Theme.subtext1
+                        font.weight: item.current ? Font.Medium : Font.Normal
+                    }
 
-                            Layout.fillWidth: true
-                            color: Theme.text
-                            selectionColor: Qt.alpha(Theme.accent, 0.4)
-                            font.family: Theme.font
-                            font.pixelSize: 15
-                            focus: true
-                            onTextChanged: list.currentIndex = 0
-
-                            Keys.onEscapePressed: win.close()
-                            Keys.onReturnPressed: win.pick(win.results[list.currentIndex])
-                            Keys.onEnterPressed: win.pick(win.results[list.currentIndex])
-                            Keys.onDownPressed: list.incrementCurrentIndex()
-                            Keys.onUpPressed: list.decrementCurrentIndex()
-                            Keys.onTabPressed: list.incrementCurrentIndex()
-                            Keys.onBacktabPressed: list.decrementCurrentIndex()
-                            Keys.onDeletePressed: {
-                                const e = win.results[list.currentIndex];
-                                if (e)
-                                    Clipboard.remove(e);
-                            }
-
-                            StyledText {
-                                anchors.verticalCenter: parent.verticalCenter
-                                visible: !search.text
-                                text: "Search clipboard history…"
-                                color: Theme.overlay0
-                                font.pixelSize: 15
-                            }
-                        }
-
-                        IconButton {
-                            icon: Icons.trash
-                            color: Theme.subtext0
-                            enabled: Clipboard.entries.length > 0
-                            onClicked: Clipboard.wipe()
-                        }
+                    IconButton {
+                        size: 28
+                        iconSize: 14
+                        icon: Icons.close
+                        color: Theme.overlay1
+                        visible: item.containsMouse
+                        onClicked: Clipboard.remove(item.modelData)
                     }
                 }
+            }
+        }
 
-                ListView {
-                    id: list
+        ColumnLayout {
+            Layout.alignment: Qt.AlignHCenter
+            Layout.margins: 18
+            visible: list.count === 0
+            spacing: 2
 
-                    Layout.fillWidth: true
-                    Layout.preferredHeight: Math.min(contentHeight, 440)
-                    visible: count > 0
-                    clip: true
-                    spacing: 2
-                    model: ScriptModel {
-                        values: win.results
-                    }
-                    boundsBehavior: Flickable.StopAtBounds
-                    highlightMoveDuration: 120
-                    highlight: Rectangle {
-                        radius: Theme.radius
-                        color: Qt.alpha(Theme.accent, 0.16)
-                    }
+            StyledText {
+                Layout.alignment: Qt.AlignHCenter
+                text: Clipboard.entries.length === 0 ? "Nothing copied yet" : "No matches"
+                font.family: Theme.displayFont
+                font.pixelSize: 16
+                font.weight: Font.ExtraBold
+                color: Theme.subtext1
+            }
 
-                    delegate: MouseArea {
-                        id: item
+            StyledText {
+                Layout.alignment: Qt.AlignHCenter
+                text: Clipboard.entries.length === 0 ? "Copied text and images show up here." : "Try another word."
+                color: Theme.overlay1
+                font.pixelSize: Theme.smallFontSize + 1
+            }
+        }
 
-                        required property var modelData
-                        required property int index
+        RowLayout {
+            Layout.alignment: Qt.AlignHCenter
+            Layout.bottomMargin: 2
+            spacing: 14
 
-                        width: ListView.view.width
-                        height: modelData.isImage ? 72 : 46
-                        hoverEnabled: true
-                        cursorShape: Qt.PointingHandCursor
-                        onEntered: list.currentIndex = index
-                        onClicked: win.pick(modelData)
-                        Component.onCompleted: {
-                            if (modelData.isImage)
-                                Clipboard.thumb(modelData);
-                        }
+            Repeater {
+                model: [
+                    { key: "↵", label: "copy" },
+                    { key: "↑↓", label: "move" },
+                    { key: "Del", label: "remove" },
+                    { key: "Esc", label: "close" }
+                ]
 
-                        RowLayout {
-                            anchors.fill: parent
-                            anchors.leftMargin: 12
-                            anchors.rightMargin: 6
-                            spacing: 12
+                Row {
+                    id: hint
 
-                            ClippingRectangle {
-                                visible: item.modelData.isImage
-                                Layout.preferredWidth: 96
-                                Layout.preferredHeight: 56
-                                radius: Theme.innerRadius
-                                color: Theme.surface1
+                    required property var modelData
 
-                                Image {
-                                    anchors.fill: parent
-                                    source: Clipboard.thumbs[item.modelData.id] ?? ""
-                                    fillMode: Image.PreserveAspectCrop
-                                    sourceSize: Qt.size(192, 112)
-                                    asynchronous: true
-                                }
-                            }
+                    spacing: 5
 
-                            Icon {
-                                visible: !item.modelData.isImage
-                                text: Icons.text
-                                color: Theme.overlay1
-                            }
+                    Rectangle {
+                        anchors.verticalCenter: parent.verticalCenter
+                        width: keyLabel.implicitWidth + 10
+                        height: 18
+                        radius: 5
+                        color: Theme.card
+                        border.width: 1
+                        border.color: Theme.rim
 
-                            StyledText {
-                                Layout.fillWidth: true
-                                text: item.modelData.preview
-                                maximumLineCount: 2
-                                wrapMode: Text.WrapAnywhere
-                                color: item.ListView.isCurrentItem ? Theme.text : Theme.subtext1
-                            }
+                        StyledText {
+                            id: keyLabel
 
-                            IconButton {
-                                size: 28
-                                iconSize: 14
-                                icon: Icons.close
-                                color: Theme.overlay1
-                                visible: item.containsMouse
-                                onClicked: Clipboard.remove(item.modelData)
-                            }
+                            anchors.centerIn: parent
+                            text: hint.modelData.key
+                            font.pixelSize: 9
+                            font.weight: Font.Bold
+                            color: Theme.subtext1
                         }
                     }
-                }
 
-                StyledText {
-                    Layout.alignment: Qt.AlignHCenter
-                    Layout.margins: 12
-                    visible: list.count === 0
-                    text: Clipboard.entries.length === 0 ? "Clipboard history is empty" : "No matches"
-                    color: Theme.overlay1
-                }
-
-                StyledText {
-                    Layout.alignment: Qt.AlignHCenter
-                    text: "Enter to copy · Del to remove"
-                    color: Theme.overlay0
-                    font.pixelSize: Theme.smallFontSize
+                    StyledText {
+                        anchors.verticalCenter: parent.verticalCenter
+                        text: hint.modelData.label
+                        color: Theme.overlay1
+                        font.pixelSize: Theme.smallFontSize
+                    }
                 }
             }
         }

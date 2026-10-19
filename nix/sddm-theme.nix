@@ -3,8 +3,8 @@
   stdenvNoCC,
   # Image blurred behind the login form.
   background ? null,
-  # Overrides for theme.conf keys: accent, onAccent, base, crust, surface,
-  # text, subtext, muted, error, font, blur.
+  # Overrides for theme.conf keys: accent, accent2, onAccent, base, crust,
+  # surface, text, subtext, muted, error, font, displayFont, blur.
   settings ? { },
 }:
 
