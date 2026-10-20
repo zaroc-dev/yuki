@@ -1,22 +1,27 @@
 import QtQuick
+import QtQuick.Shapes
 import Quickshell.Widgets
 import qs.config
 import qs.components
 import qs.services
 import qs.popups
 
+// Now playing: the cover sits like a record inside a ring that fills with
+// the track's progress, a little equalizer steps while it plays.
 BarButton {
     id: root
 
     readonly property var player: Media.active
+    readonly property bool playing: player?.isPlaying ?? false
+    readonly property real progress: Media.hasLength(player) ? Math.min(1, (player?.position ?? 0) / Math.max(1, player?.length ?? 1)) : 0
     // Room the bar gives the title (with its spacing); below a readable minimum
     // only art and controls stay. Same no-feedback rule as ActiveWindow.
-    property real titleMax: 260 + spacing
-    readonly property real titleNatural: Math.min(title.implicitWidth, 260) + spacing
-    readonly property real fixedWidth: cover.width + controls.implicitWidth + spacing + hPadding * 2
+    property real titleMax: 240 + spacing
+    readonly property real titleNatural: Math.min(title.implicitWidth, 240) + spacing
+    readonly property real fixedWidth: disc.width + eq.width + controls.implicitWidth + spacing * 2 + hPadding * 2
 
     visible: player !== null && Settings.d.showMedia
-    hPadding: 4
+    hPadding: 3
     spacing: 8
     active: popup.visible
     onClicked: e => {
@@ -26,31 +31,86 @@ BarButton {
             popup.toggle();
     }
 
-    ClippingRectangle {
-        id: cover
+    Item {
+        id: disc
 
         anchors.verticalCenter: parent.verticalCenter
-        width: 24
-        height: 24
-        radius: 6
-        color: Theme.surface0
+        width: 28
+        height: 28
 
-        Image {
-            id: art
-
+        Shape {
             anchors.fill: parent
-            source: root.player?.trackArtUrl ?? ""
-            fillMode: Image.PreserveAspectCrop
-            sourceSize: Qt.size(64, 64)
-            asynchronous: true
+            preferredRendererType: Shape.CurveRenderer
+
+            ShapePath {
+                fillColor: "transparent"
+                strokeColor: Qt.alpha(Theme.text, 0.12)
+                strokeWidth: 2
+
+                PathAngleArc {
+                    centerX: 14
+                    centerY: 14
+                    radiusX: 13
+                    radiusY: 13
+                    sweepAngle: 360
+                }
+            }
+
+            ShapePath {
+                fillColor: "transparent"
+                strokeColor: Theme.accent
+                strokeWidth: 2
+                capStyle: ShapePath.RoundCap
+
+                PathAngleArc {
+                    centerX: 14
+                    centerY: 14
+                    radiusX: 13
+                    radiusY: 13
+                    startAngle: -90
+                    // No tween: the position ticks once a second, and animating
+                    // the arc re-tessellates it every frame in every bar.
+                    sweepAngle: 360 * root.progress
+                }
+            }
         }
 
-        Icon {
+        ClippingRectangle {
+            id: cover
+
             anchors.centerIn: parent
-            visible: art.status !== Image.Ready
-            text: Icons.music
-            size: 14
-            color: Theme.accent
+            width: 20
+            height: 20
+            radius: 10
+            color: Theme.surface0
+
+            Image {
+                id: art
+
+                anchors.fill: parent
+                source: root.player?.trackArtUrl ?? ""
+                fillMode: Image.PreserveAspectCrop
+                sourceSize: Qt.size(64, 64)
+                asynchronous: true
+            }
+
+            Icon {
+                anchors.centerIn: parent
+                visible: art.status !== Image.Ready
+                text: Icons.music
+                size: 11
+                color: Theme.accent
+            }
+        }
+
+        // Spindle hole.
+        Rectangle {
+            anchors.centerIn: parent
+            width: 4
+            height: 4
+            radius: 2
+            visible: art.status === Image.Ready
+            color: Theme.base
         }
     }
 
@@ -59,13 +119,53 @@ BarButton {
 
         anchors.verticalCenter: parent.verticalCenter
         visible: root.titleMax - root.spacing >= 48
-        width: Math.min(implicitWidth, 260, root.titleMax - root.spacing)
+        width: Math.min(implicitWidth, 240, root.titleMax - root.spacing)
         textFormat: Text.StyledText
+        font.weight: Font.Medium
         text: {
             const t = root.player?.trackTitle || Media.nameOf(root.player);
             const a = root.player?.trackArtist ?? "";
             const esc = s => s.replace(/&/g, "&amp;").replace(/</g, "&lt;");
             return a ? `${esc(t)} <font color="${Theme.subtext0}">· ${esc(a)}</font>` : esc(t);
+        }
+    }
+
+    // Faux equalizer, stepped like a VU meter. Nothing in the bar animates
+    // continuously: the shell renders on its GUI thread, and a bar redrawing
+    // every frame (300 Hz on fast monitors) starves the panel animations.
+    Row {
+        id: eq
+
+        property int tick: 0
+
+        anchors.verticalCenter: parent.verticalCenter
+        height: 14
+        spacing: 2
+
+        Timer {
+            running: root.playing
+            interval: 125
+            repeat: true
+            onTriggered: eq.tick++
+        }
+
+        Repeater {
+            model: [0.9, 0.55, 1, 0.7]
+
+            Rectangle {
+                id: bar
+
+                required property real modelData
+                required property int index
+                // Out-of-phase waves, so the bars never move in lockstep.
+                readonly property real level: root.playing ? 0.25 + 0.75 * bar.modelData * Math.abs(Math.sin(eq.tick * (0.9 + bar.index * 0.37) + bar.index * 1.7)) : 0.2
+
+                anchors.bottom: parent.bottom
+                width: 2.5
+                height: Math.max(3, Math.round(eq.height * level))
+                radius: 1.25
+                color: Theme.accent
+            }
         }
     }
 
@@ -77,7 +177,7 @@ BarButton {
 
         IconButton {
             size: 24
-            iconSize: 14
+            iconSize: 13
             icon: Icons.previous
             color: Theme.subtext0
             enabled: root.player?.canGoPrevious ?? false
@@ -87,14 +187,14 @@ BarButton {
         IconButton {
             size: 24
             iconSize: 15
-            icon: root.player?.isPlaying ? Icons.pause : Icons.play
+            icon: root.playing ? Icons.pause : Icons.play
             color: Theme.accent
             onClicked: root.player?.togglePlaying()
         }
 
         IconButton {
             size: 24
-            iconSize: 14
+            iconSize: 13
             icon: Icons.next
             color: Theme.subtext0
             enabled: root.player?.canGoNext ?? false
@@ -102,42 +202,12 @@ BarButton {
         }
     }
 
-    // Thin progress line under the title.
-    Item {
-        parent: root
-        anchors.left: parent.left
-        anchors.right: parent.right
-        anchors.bottom: parent.bottom
-        anchors.leftMargin: 36
-        anchors.rightMargin: 82
-        height: 2
-        visible: Media.hasLength(root.player) && title.visible
-
-        Rectangle {
-            anchors.fill: parent
-            radius: 1
-            color: Qt.alpha(Theme.text, 0.1)
-        }
-
-        Rectangle {
-            width: parent.width * Math.min(1, (root.player?.position ?? 0) / Math.max(1, root.player?.length ?? 1))
-            height: parent.height
-            radius: 1
-            color: Theme.accent
-
-            Behavior on width {
-                NumberAnimation {
-                    duration: 900
-                }
-            }
-        }
-
-        Timer {
-            running: parent.visible && (root.player?.isPlaying ?? false)
-            interval: 1000
-            repeat: true
-            onTriggered: root.player.positionChanged()
-        }
+    // MPRIS doesn't push position updates.
+    Timer {
+        running: root.visible && root.playing
+        interval: 1000
+        repeat: true
+        onTriggered: root.player.positionChanged()
     }
 
     MediaPopup {

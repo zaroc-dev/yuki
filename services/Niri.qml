@@ -50,6 +50,20 @@ Singleton {
         return n;
     }
 
+    // The scrolling layout of a workspace: tiled windows grouped into columns,
+    // left to right, each column top to bottom.
+    function columnsOf(workspaceId) {
+        const cols = {};
+        for (const id in windows) {
+            const w = windows[id];
+            const pos = w.layout?.pos_in_scrolling_layout;
+            if (w.workspace_id !== workspaceId || w.is_floating || !pos)
+                continue;
+            (cols[pos[0]] = cols[pos[0]] || []).push(w);
+        }
+        return Object.keys(cols).sort((a, b) => a - b).map(k => cols[k].sort((a, b) => a.layout.pos_in_scrolling_layout[1] - b.layout.pos_in_scrolling_layout[1]));
+    }
+
     function action(name, args) {
         send({
             Action: {
@@ -148,6 +162,18 @@ Singleton {
                 windows = map;
                 if (focusedWindowId === data.id)
                     focusedWindowId = null;
+                break;
+            }
+        // Moves and resizes within the layout.
+        case "WindowLayoutsChanged":
+            {
+                const map = Object.assign({}, windows);
+                for (const [id, layout] of data.changes)
+                    if (map[id])
+                        map[id] = Object.assign({}, map[id], {
+                            layout: layout
+                        });
+                windows = map;
                 break;
             }
         case "WindowFocusChanged":

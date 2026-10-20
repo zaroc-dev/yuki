@@ -1,17 +1,25 @@
 # yuki
 
-A Quickshell desktop shell for niri: three floating, frosted pills along the top edge.
+A Quickshell desktop shell for niri. One frosted strip is fused to the top edge
+of each screen; its ends curve down into rounded screen corners. Every panel
+grows out of the bar's bottom edge, joined by concave fillets so the two read as
+one liquid surface. Panels near a screen edge snap to it and run down the side
+like a drawer. Along the bar's edge runs the horizon, a thin aurora line that
+carries on around every panel and gathers light: under the cursor, where panels
+join, in a sun that crosses the screen once a day, and in a comet that shoots
+across when a notification arrives.
 
-| Pill   | Contents                                                                    |
+| Part   | Contents                                                                    |
 | ------ | --------------------------------------------------------------------------- |
-| left   | start menu + app launcher; media player as its own pill (art, title, controls, progress) |
-| center | clock/date → dashboard, niri workspaces of *this* output, its active window  |
-| right  | tray · notifications · bluetooth, network (name on hover), volume, battery · power |
+| left   | start badge + app launcher, niri workspaces of *this* output (the active one as a live minimap of its columns), its active window |
+| middle | clock/date (digits roll over) → dashboard |
+| right  | now playing (cover in a progress ring, equalizer, controls) · tray · bluetooth, network (name on hover), volume, battery · notifications · power |
 
-Every widget has a popup: media controls + seek + player switcher, a dashboard,
+Every widget has a panel: media controls + seek + player switcher, a dashboard,
 a notification center (with do-not-disturb), the network (wired, VPN and Wi-Fi; see below),
 and audio (output/input sliders and device pickers). The shell is also the notification
-daemon, with toasts in the top right of the focused output, and has an app launcher.
+daemon: toasts drop out of the bar's top-right corner as a drawer. The launcher and
+clipboard history grow out of the middle of the bar.
 
 ## Desktop services
 
@@ -28,10 +36,11 @@ daemon, with toasts in the top right of the focused output, and has an app launc
 - **Audio:** the volume popup has output/input device pickers and a per-app mixer
   (a slider per playing app; click its icon to mute). While an app records from the
   microphone, a red mic shows next to the volume and the popup names the app.
-- **OSD:** a volume/brightness pill on the focused screen for any change (keys, apps).
+- **OSD:** volume/brightness drops out of the middle of the bar on the focused
+  screen for any change (keys, apps).
 - **Idle:** lock and screen-off timers, respecting apps that inhibit idle; "Awake" toggle.
-- **Dashboard:** click the clock. A greeting with a big clock, uptime and
-  sunrise/sunset; weather now, for the next hours and the next 5 days; the calendar;
+- **Dashboard:** click the clock. A greeting with a giant clock, uptime and
+  sunrise/sunset; weather now, the next hours as a temperature curve, the next 6 days; the calendar;
   now playing; CPU, memory, disk and CPU temperature gauges (polled only while it's
   open). The lock screen shows the current weather under the date.
 - **Weather:** [Open-Meteo](https://open-meteo.com) (no API key), cached in
@@ -193,7 +202,7 @@ and yuki shows no toasts until it exits; then yuki takes the name over.
 | start button    | click: start menu · right-click: cycle themes               |
 | launcher button | click: launcher                                             |
 | media           | click: popup · middle: play/pause                           |
-| workspaces      | click: focus · scroll: up/down                              |
+| workspaces      | click: focus · minimap tile: focus that window · scroll: up/down |
 | notifications   | click: center · right-click: toggle do-not-disturb          |
 | volume          | click: popup · scroll: ±5% · middle: mute                   |
 | tray item       | click: activate · right-click: menu · middle: secondary     |
@@ -282,7 +291,7 @@ extras/sddm/yuki/    SDDM login theme in the lock screen's design
 extras/plymouth/     Plymouth boot theme + image generator
 config/              Settings (persisted), Theme (palette from wallpaper/Catppuccin), Wallpapers, Icons
 services/            singletons: Niri (IPC event stream), Audio, Media, Net, Notifs, Apps, Lock, Power, Ui
-components/          Pill, BarButton, BarPopup, StyledText, Icon, IconButton, StyledSlider, AppIcon, NotificationCard
+components/          Surface (the fused panel shape), BarPopup, DropSheet, BarButton, PanelHeader, SectionLabel, StyledSlider, …
 bar/                 Bar + one file per widget
 popups/              per-widget popups (incl. PowerMenu, TrayMenu), Launcher, NotificationToasts
 lock/                LockScreen (session lock + preview windows), LockSurface (the UI)

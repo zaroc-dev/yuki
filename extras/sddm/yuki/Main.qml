@@ -1,6 +1,6 @@
 // SDDM login theme matching the shell's lock screen: blurred wallpaper, big
-// thin clock, avatar with an accent ring, a pill password field, sessions on
-// the bottom left, keyboard layout and power on the bottom right.
+// display clock, avatar with an aurora ring, a pill password field, sessions
+// on the bottom left, keyboard layout and power on the bottom right.
 // Only needs QtQuick + QtQuick.Effects (Qt 6).
 import QtQuick
 import QtQuick.Effects
@@ -9,6 +9,8 @@ Rectangle {
     id: root
 
     readonly property color accent: config.accent || "#b3c5ff"
+    // Second stop of the aurora gradient.
+    readonly property color accent2: config.accent2 || "#e1bbdc"
     readonly property color onAccent: config.onAccent || "#192e60"
     readonly property color base: config.base || "#121318"
     readonly property color crust: config.crust || "#0d0e13"
@@ -18,6 +20,8 @@ Rectangle {
     readonly property color muted: config.muted || "#8f909a"
     readonly property color error: config.error || "#ffb4ab"
     readonly property string font: config.font || "Inter"
+    readonly property string displayFont: Qt.fontFamilies().includes(config.displayFont || "Inter Display") ? config.displayFont || "Inter Display" : font
+    readonly property color rim: Qt.alpha(textColor, 0.07)
 
     property int userIndex: userModel.lastIndex >= 0 ? userModel.lastIndex : 0
     property int sessionIndex: sessionModel.lastIndex >= 0 ? sessionModel.lastIndex : 0
@@ -182,18 +186,23 @@ Rectangle {
                 anchors.horizontalCenter: parent.horizontalCenter
                 text: Qt.formatTime(clockTick.now, "HH:mm")
                 color: root.textColor
-                font.family: root.font
+                font.family: root.displayFont
                 font.pixelSize: 136
-                font.weight: Font.Light
-                font.letterSpacing: -4
+                font.weight: Font.Bold
+                font.letterSpacing: -3
+                font.features: {
+                    "tnum": 1
+                }
             }
 
             Text {
                 anchors.horizontalCenter: parent.horizontalCenter
-                text: Qt.formatDate(clockTick.now, "dddd, d MMMM")
-                color: root.subtext
+                text: Qt.formatDate(clockTick.now, "dddd · d MMMM").toUpperCase()
+                color: root.accent
                 font.family: root.font
-                font.pixelSize: 21
+                font.pixelSize: 15
+                font.weight: Font.Bold
+                font.letterSpacing: 3
             }
         }
 
@@ -232,12 +241,45 @@ Rectangle {
                     width: 112
                     height: 112
 
+                    // Aurora ring: the gradient disc seen through a ring-shaped mask.
                     Rectangle {
+                        id: auroraDisc
+
+                        anchors.fill: parent
+                        radius: width / 2
+                        visible: false
+                        layer.enabled: true
+                        gradient: Gradient {
+                            GradientStop {
+                                position: 0
+                                color: root.failed ? root.error : root.accent
+                            }
+                            GradientStop {
+                                position: 1
+                                color: root.failed ? root.error : root.accent2
+                            }
+                        }
+                    }
+
+                    Rectangle {
+                        id: ringShape
+
                         anchors.fill: parent
                         radius: width / 2
                         color: "transparent"
-                        border.width: 2
-                        border.color: root.failed ? root.error : root.accent
+                        border.width: 3
+                        border.color: "white"
+                        visible: false
+                        layer.enabled: true
+                    }
+
+                    MultiEffect {
+                        anchors.fill: parent
+                        source: auroraDisc
+                        maskEnabled: true
+                        maskSource: ringShape
+                        maskThresholdMin: 0.5
+                        maskSpreadAtMin: 1
 
                         SequentialAnimation on opacity {
                             running: root.busy
@@ -321,9 +363,9 @@ Rectangle {
                 anchors.horizontalCenter: parent.horizontalCenter
                 text: root.user?.realName || root.userName
                 color: root.textColor
-                font.family: root.font
-                font.pixelSize: 20
-                font.weight: Font.DemiBold
+                font.family: root.displayFont
+                font.pixelSize: 22
+                font.weight: Font.ExtraBold
             }
 
             Rectangle {
@@ -335,7 +377,7 @@ Rectangle {
                 radius: 26
                 color: Qt.alpha(root.base, 0.55)
                 border.width: 1.5
-                border.color: root.failed ? root.error : password.text ? Qt.alpha(root.accent, 0.9) : Qt.alpha(root.textColor, 0.14)
+                border.color: root.failed ? root.error : password.text ? Qt.alpha(root.accent, 0.55) : root.rim
 
                 TextInput {
                     id: password
@@ -368,10 +410,13 @@ Rectangle {
                         model: Math.min(password.text.length, 20)
 
                         Rectangle {
+                            required property int index
+
                             width: 10
                             height: 10
                             radius: 5
-                            color: root.busy ? root.muted : root.textColor
+                            // Aurora across the dots.
+                            color: root.busy ? root.muted : Qt.tint(root.accent, Qt.alpha(root.accent2, index / 16))
                             scale: 0
                             Component.onCompleted: scale = 1
 
@@ -392,7 +437,21 @@ Rectangle {
                     width: 38
                     height: 38
                     radius: 19
-                    color: password.text && !root.busy ? root.accent : Qt.alpha(root.surface, 0.8)
+                    color: Qt.alpha(root.crust, 0.45)
+                    gradient: password.text && !root.busy ? aurora : null
+
+                    Gradient {
+                        id: aurora
+
+                        GradientStop {
+                            position: 0
+                            color: root.accent
+                        }
+                        GradientStop {
+                            position: 1
+                            color: root.accent2
+                        }
+                    }
 
                     Text {
                         anchors.centerIn: parent
@@ -429,6 +488,8 @@ Rectangle {
             height: 44
             radius: 22
             color: sessionArea.containsMouse ? Qt.alpha(root.textColor, 0.16) : Qt.alpha(root.base, 0.45)
+            border.width: 1
+            border.color: root.rim
 
             Text {
                 id: sessionLabel
@@ -473,6 +534,8 @@ Rectangle {
                 height: 44
                 radius: 22
                 color: Qt.alpha(root.base, 0.45)
+                border.width: 1
+                border.color: root.rim
 
                 Text {
                     id: kb
@@ -502,6 +565,8 @@ Rectangle {
                     height: 44
                     radius: 22
                     color: root.armed === modelData.id ? root.error : pbArea.containsMouse ? Qt.alpha(root.textColor, 0.16) : Qt.alpha(root.base, 0.45)
+                    border.width: root.armed === modelData.id ? 0 : 1
+                    border.color: root.rim
 
                     Text {
                         anchors.centerIn: parent

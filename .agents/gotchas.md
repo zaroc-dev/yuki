@@ -38,11 +38,38 @@ elsewhere.
   bind to the cached result.
 - **`property alias x: someVarObject.y`** is invalid; aliases need `id.property`.
 - **Inline `component`s**: declare them at the document root.
+- **An `id` shadows a property of the same name.** QML resolves ids before the
+  scope object's properties: a label with `id: count` inside a `ListView`'s file
+  made the list's own `visible: count > 0` compare an object (the launcher list
+  never showed). Don't name ids after properties you read unqualified.
+- **`font.pixelSize` is an int**: `8.5` fails the whole component ("Invalid
+  property assignment: int expected"), and with it the bar.
+- **`Item` has FINAL `left`/`right`/`top`/`bottom`** (anchor lines): declaring
+  `property real left` fails the file ("Cannot override FINAL property").
+- **The shell renders on its GUI thread** (no render threads; per-thread CPU
+  shows only the main thread). Every frame any window draws competes with
+  every animation, so:
+  - nothing in the bar may animate continuously: a spinning cover + tweened
+    equalizer kept three bars redrawing at monitor rate (300 Hz on DP-2),
+    ~25% CPU idle, and panel transitions stuttered. Step it with a Timer;
+  - don't animate Shape paths per frame (panel outlines, progress arcs with a
+    Behavior): build from Rectangles + static `Corner`s and move them;
+  - avoid `MultiEffect`/layers that re-render every frame.
+  Measure: CPU ticks of the shell PID (`/proc/<pid>/stat` fields 14+15)
+  across scripted IPC open/close cycles, and at idle.
+- **Bar buttons' hover capsules stayed lit** (hover-enter without
+  hover-leave) while a `HoverHandler` sat on the bar's topmost item. Watch the
+  cursor from an item *below* the widgets (`blocking: false`) instead.
+- **`Shape.CurveRenderer` inside a layer renders nothing** (a stroke used as
+  a `MultiEffect` mask came out empty); use the default renderer there.
+- **`MultiEffect` mask with `maskThresholdMin: 0` passes everything** (alpha
+  0 ≥ 0). For soft masks use `maskThresholdMin: 0.5, maskSpreadAtMin: 1`.
 - **Nerd Font glyphs are off-center** in their advance box. `Icon` shifts by the
   ink (`TextMetrics.tightBoundingRect`); don't fight it with manual margins.
 
 ## QV4 (Qt's JS engine)
 
+- No `Array.prototype.flatMap`: use `reduce` + `concat`.
 - No object spread (`{...a, ...b}`): use `Object.assign({}, a, b)`. Array
   spread is fine. Two spots in `lib/mcu` are patched for this (marked
   `patched: QV4 lacks object spread`); re-apply when updating the vendored lib.
@@ -73,6 +100,11 @@ elsewhere.
   the config *path*: store builds would get empty settings. Pragmas only apply
   at process start (restart, not reload). The first reload after changing it
   on a running instance failed to resolve `qs.*` modules: restart instead.
+- **Fused surfaces need equal fillets.** The bar hides a corner the instant a
+  snapped panel shows; that is only seamless because the panel's edge fillet
+  has the same radius (`Theme.fillet`) and starts at the corner's position.
+- The file watcher sometimes misses a write (an edited popup kept its old
+  content across several "Configuration Loaded"); `ipc call shell reload` fixes it.
 - Soft reloads reuse windows; stale layer surfaces can survive
   (`ipc call shell reload true` for a hard reload).
 - **Soft reload, then lock preview, crashed Qt** (segfault in

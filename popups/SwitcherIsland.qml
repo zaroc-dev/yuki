@@ -21,10 +21,10 @@ Item {
         y: Theme.barHeight + Theme.gap * 2 - (1 - opacity) * 10
         width: Math.min(Math.max(strip.contentWidth, title.implicitWidth + 12, 220), root.width - Theme.gap * 4) + 20
         height: strip.height + title.height + 30
-        radius: Theme.radius + 4
+        radius: 28
         color: Theme.popupBg
         border.width: 1
-        border.color: Theme.barBorder
+        border.color: Theme.rim
         opacity: 0
         Component.onCompleted: opacity = 1
 

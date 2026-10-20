@@ -189,17 +189,23 @@ Item {
 
                 StyledText {
                     text: Qt.formatDateTime(clock.date, "HH:mm")
+                    font.family: Theme.displayFont
                     font.pixelSize: 136
-                    font.weight: Font.Light
-                    font.letterSpacing: -4
+                    font.weight: Font.Bold
+                    font.letterSpacing: -3
+                    font.features: {
+                        "tnum": 1
+                    }
                 }
             }
 
             StyledText {
                 anchors.horizontalCenter: parent.horizontalCenter
-                text: Qt.formatDateTime(clock.date, "dddd, d MMMM")
-                font.pixelSize: 21
-                color: Theme.subtext1
+                text: Qt.formatDateTime(clock.date, "dddd · d MMMM").toUpperCase()
+                font.pixelSize: 15
+                font.weight: Font.Bold
+                font.letterSpacing: 3
+                color: Theme.accent
             }
 
             // Weather (cached, so it's there even before the network is).
@@ -220,8 +226,9 @@ Item {
                 StyledText {
                     anchors.verticalCenter: parent.verticalCenter
                     text: Weather.temp
-                    font.pixelSize: 21
-                    font.weight: Font.DemiBold
+                    font.family: Theme.displayFont
+                    font.pixelSize: 22
+                    font.weight: Font.ExtraBold
                 }
 
                 StyledText {
@@ -250,14 +257,47 @@ Item {
                 implicitWidth: 112
                 implicitHeight: 112
 
+                // Aurora ring: the gradient disc seen through a ring-shaped mask.
                 Rectangle {
-                    id: ring
+                    id: auroraDisc
+
+                    anchors.fill: parent
+                    radius: width / 2
+                    visible: false
+                    layer.enabled: true
+                    gradient: Gradient {
+                        GradientStop {
+                            position: 0
+                            color: root.bad ? Theme.red : Theme.accent
+                        }
+                        GradientStop {
+                            position: 1
+                            color: root.bad ? Theme.red : Theme.accent2
+                        }
+                    }
+                }
+
+                Rectangle {
+                    id: ringShape
 
                     anchors.fill: parent
                     radius: width / 2
                     color: "transparent"
-                    border.width: 2
-                    border.color: root.bad ? Theme.red : Theme.accent
+                    border.width: 3
+                    border.color: "white"
+                    visible: false
+                    layer.enabled: true
+                }
+
+                MultiEffect {
+                    id: ring
+
+                    anchors.fill: parent
+                    source: auroraDisc
+                    maskEnabled: true
+                    maskSource: ringShape
+                    maskThresholdMin: 0.5
+                    maskSpreadAtMin: 1
                     opacity: 0.85
 
                     SequentialAnimation on opacity {
@@ -287,8 +327,9 @@ Item {
             StyledText {
                 Layout.alignment: Qt.AlignHCenter
                 text: Power.user
-                font.pixelSize: 20
-                font.weight: Font.DemiBold
+                font.family: Theme.displayFont
+                font.pixelSize: 22
+                font.weight: Font.ExtraBold
             }
 
             Rectangle {
@@ -301,7 +342,7 @@ Item {
                 radius: height / 2
                 color: Qt.alpha(Theme.base, 0.55)
                 border.width: 1.5
-                border.color: root.bad ? Theme.red : Lock.password !== "" ? Qt.alpha(Theme.accent, 0.9) : Qt.alpha(Theme.text, 0.14)
+                border.color: root.bad ? Theme.red : Lock.password !== "" ? Qt.alpha(Theme.accent, 0.55) : Theme.rim
 
                 Behavior on border.color {
                     ColorAnimation {
@@ -377,10 +418,13 @@ Item {
                         model: Math.min(Lock.password.length, 20)
 
                         Rectangle {
+                            required property int index
+
                             width: 10
                             height: 10
                             radius: 5
-                            color: root.busy ? Theme.overlay1 : Theme.text
+                            // Aurora across the dots.
+                            color: root.busy ? Theme.overlay1 : Qt.tint(Theme.accent, Qt.alpha(Theme.accent2, index / 16))
                             scale: 0
                             Component.onCompleted: scale = 1
 
@@ -410,11 +454,27 @@ Item {
                     Rectangle {
                         anchors.fill: parent
                         radius: width / 2
-                        color: submit.enabled ? (submit.containsMouse ? Qt.lighter(Theme.accent, 1.1) : Theme.accent) : Qt.alpha(Theme.surface1, 0.6)
+                        color: Theme.well
+                        scale: submit.pressed ? 0.92 : 1
+                        gradient: submit.enabled ? aurora : null
 
-                        Behavior on color {
-                            ColorAnimation {
-                                duration: Theme.anim
+                        Gradient {
+                            id: aurora
+
+                            GradientStop {
+                                position: 0
+                                color: submit.containsMouse ? Qt.lighter(Theme.accent, 1.1) : Theme.accent
+                            }
+                            GradientStop {
+                                position: 1
+                                color: submit.containsMouse ? Qt.lighter(Theme.accent2, 1.1) : Theme.accent2
+                            }
+                        }
+
+                        Behavior on scale {
+                            NumberAnimation {
+                                duration: 120
+                                easing.type: Easing.OutCubic
                             }
                         }
                     }
@@ -453,10 +513,10 @@ Item {
             anchors.margins: 32
             width: mediaRow.implicitWidth + 24
             height: 68
-            radius: 18
+            radius: Theme.radiusLarge
             color: Qt.alpha(Theme.base, 0.45)
             border.width: 1
-            border.color: Qt.alpha(Theme.text, 0.08)
+            border.color: Theme.rim
 
             RowLayout {
                 id: mediaRow
@@ -468,7 +528,7 @@ Item {
                 ClippingRectangle {
                     Layout.preferredWidth: 48
                     Layout.preferredHeight: 48
-                    radius: 10
+                    radius: 12
                     color: Theme.surface0
 
                     Image {
@@ -486,7 +546,7 @@ Item {
                     StyledText {
                         Layout.maximumWidth: 240
                         text: Media.active?.trackTitle || Media.nameOf(Media.active)
-                        font.weight: Font.DemiBold
+                        font.weight: Font.Bold
                     }
 
                     StyledText {
@@ -539,6 +599,8 @@ Item {
                 height: 44
                 radius: 22
                 color: Qt.alpha(Theme.base, 0.45)
+                border.width: 1
+                border.color: Theme.rim
 
                 Row {
                     id: kbRow
@@ -586,6 +648,8 @@ Item {
                         anchors.fill: parent
                         radius: width / 2
                         color: pb.isArmed ? Theme.red : pb.containsMouse ? Qt.alpha(Theme.text, 0.16) : Qt.alpha(Theme.base, 0.45)
+                        border.width: pb.isArmed ? 0 : 1
+                        border.color: Theme.rim
 
                         Behavior on color {
                             ColorAnimation {

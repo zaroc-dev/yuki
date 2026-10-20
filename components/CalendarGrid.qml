@@ -41,8 +41,9 @@ ColumnLayout {
 
                 width: parent.width
                 text: Qt.formatDate(new Date(root.year, root.month, 1), "MMMM yyyy")
-                font.pixelSize: 15
-                font.weight: Font.DemiBold
+                font.family: Theme.displayFont
+                font.pixelSize: 17
+                font.weight: Font.ExtraBold
             }
         }
 
@@ -66,10 +67,12 @@ ColumnLayout {
         delegate: StyledText {
             required property string shortName
 
-            text: shortName.slice(0, 2)
+            text: shortName.slice(0, 2).toUpperCase()
             horizontalAlignment: Text.AlignHCenter
             color: Theme.overlay1
-            font.pixelSize: Theme.smallFontSize
+            font.pixelSize: 10
+            font.weight: Font.Bold
+            font.letterSpacing: 1
         }
     }
 
@@ -92,17 +95,27 @@ ColumnLayout {
 
             Rectangle {
                 anchors.centerIn: parent
-                width: 28
-                height: 28
-                radius: 14
-                color: day.model.today ? Theme.accent : "transparent"
+                width: 30
+                height: 30
+                radius: 11
+                visible: day.model.today
+                gradient: Gradient {
+                    GradientStop {
+                        position: 0
+                        color: Theme.accent
+                    }
+                    GradientStop {
+                        position: 1
+                        color: Theme.accent2
+                    }
+                }
             }
 
             StyledText {
                 anchors.centerIn: parent
                 text: day.model.day
                 color: day.model.today ? Theme.onAccent : day.model.month !== grid.month ? Theme.surface2 : day.weekend ? Theme.subtext0 : Theme.text
-                font.weight: day.model.today ? Font.Bold : Font.Normal
+                font.weight: day.model.today ? Font.Black : Font.Normal
             }
         }
     }

@@ -10,12 +10,27 @@ let
   cfg = config.programs.yuki;
   pkgs' = self.packages.${pkgs.stdenv.hostPlatform.system};
   palette = lib.types.submodule {
-    options = lib.genAttrs [ "accent" "onAccent" "base" "crust" "surface" "text" "subtext" "muted" "error" ] (
-      _: lib.mkOption {
-        type = lib.types.nullOr lib.types.str;
-        default = null;
-      }
-    );
+    options =
+      lib.genAttrs
+        [
+          "accent"
+          "accent2"
+          "onAccent"
+          "base"
+          "crust"
+          "surface"
+          "text"
+          "subtext"
+          "muted"
+          "error"
+        ]
+        (
+          _:
+          lib.mkOption {
+            type = lib.types.nullOr lib.types.str;
+            default = null;
+          }
+        );
   };
 in
 {

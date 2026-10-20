@@ -14,13 +14,10 @@ ColumnLayout {
     Layout.fillWidth: true
     spacing: 8
 
-    StyledText {
+    SectionLabel {
         visible: root.title !== ""
-        text: root.title.toUpperCase()
-        font.pixelSize: Theme.smallFontSize
-        font.weight: Font.DemiBold
-        font.letterSpacing: 0.6
-        color: Theme.overlay2
+        Layout.topMargin: 0
+        text: root.title
     }
 
     StyledText {
@@ -35,8 +32,8 @@ ColumnLayout {
     Rectangle {
         Layout.fillWidth: true
         implicitHeight: card.implicitHeight + 8
-        radius: Theme.radius
-        color: Qt.alpha(Theme.surface0, 0.55)
+        radius: 20
+        color: Theme.card
 
         ColumnLayout {
             id: card

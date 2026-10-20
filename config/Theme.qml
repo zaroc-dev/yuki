@@ -185,23 +185,39 @@ Singleton {
     // With compositor blur the surfaces can be see-through; without it keep them near-opaque.
     readonly property bool blur: settings.blur
     readonly property real opacity: blur ? settings.opacity : Math.max(settings.opacity, 0.95)
+    // The bar and everything that grows out of it share one fill, so the
+    // joins between them disappear.
     readonly property color barBg: Qt.alpha(base, opacity)
-    readonly property color barBorder: Qt.alpha(surface1, 0.6)
-    readonly property color popupBg: Qt.alpha(base, Math.min(1, opacity + 0.06))
+    readonly property color popupBg: barBg
     readonly property color hover: Qt.alpha(text, 0.08)
     readonly property color pressed: Qt.alpha(text, 0.14)
     readonly property color onAccent: dynamic ? p.onPrimary : crust
+    // Second stop of the aurora gradient on primary fills.
+    readonly property color accent2: tertiary
+    // Cards inside panels, and the inset wells in the bar.
+    readonly property color card: Qt.alpha(surface0, dark ? 0.55 : 0.75)
+    readonly property color cardHover: Qt.alpha(surface1, dark ? 0.7 : 0.85)
+    readonly property color well: Qt.alpha(dark ? crust : surface0, dark ? 0.45 : 0.6)
+    readonly property color rim: Qt.alpha(text, dark ? 0.07 : 0.12)
+    // The horizon: the lit aurora line along the bar's lower edge and around
+    // everything hanging from it. Resting and fully lit strength.
+    readonly property real horizonRest: dark ? 0.32 : 0.4
+    readonly property real horizonLit: 1
 
     // ---- metrics ----
-    readonly property int barHeight: 36
+    readonly property int barHeight: 40
+    // Concave joins: bar ↔ screen edges, bar ↔ panels, panels ↔ screen edges.
+    readonly property int fillet: 16
+    readonly property real horizonWidth: 2
     readonly property int gap: 8
-    readonly property int radius: 12
-    readonly property int innerRadius: 8
-    readonly property int padding: 6
-    readonly property int spacing: 4
+    readonly property int radius: 14
+    readonly property int radiusLarge: 22
+    readonly property int innerRadius: 10
 
     // ---- type ----
     readonly property string font: "Inter"
+    // Numerals and titles.
+    readonly property string displayFont: "Inter Display"
     readonly property string iconFont: "JetBrainsMono Nerd Font"
     readonly property int fontSize: 13
     readonly property int smallFontSize: 11
@@ -209,4 +225,6 @@ Singleton {
 
     readonly property int anim: 180
     readonly property int animSlow: 320
+    // Surfaces growing out of the bar.
+    readonly property int animGrow: 420
 }

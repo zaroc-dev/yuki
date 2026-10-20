@@ -18,19 +18,19 @@ BarPopup {
         readonly property real volume: modelData.audio?.volume ?? 0
 
         Layout.fillWidth: true
-        spacing: 10
+        spacing: 12
 
         MouseArea {
-            implicitWidth: 32
-            implicitHeight: 32
+            implicitWidth: 36
+            implicitHeight: 36
             cursorShape: Qt.PointingHandCursor
             hoverEnabled: true
             onClicked: Audio.toggleMute(stream.modelData)
 
             Rectangle {
                 anchors.fill: parent
-                radius: Theme.innerRadius
-                color: parent.containsMouse ? Theme.hover : "transparent"
+                radius: 12
+                color: parent.containsMouse ? Theme.cardHover : Theme.card
             }
 
             AppIcon {
@@ -59,7 +59,7 @@ BarPopup {
 
         ColumnLayout {
             Layout.fillWidth: true
-            spacing: 2
+            spacing: 5
 
             RowLayout {
                 Layout.fillWidth: true
@@ -78,22 +78,23 @@ BarPopup {
                     color: Theme.overlay1
                     font.pixelSize: Theme.smallFontSize
                 }
+
+                StyledText {
+                    text: `${Math.round(stream.volume * 100)}`
+                    color: Theme.subtext1
+                    font.family: Theme.displayFont
+                    font.pixelSize: Theme.smallFontSize + 1
+                    font.weight: Font.Bold
+                }
             }
 
             StyledSlider {
                 Layout.fillWidth: true
+                thickness: 10
                 value: stream.volume
                 fill: stream.muted ? Theme.overlay0 : Theme.accent
                 onMoved: v => Audio.setVolume(stream.modelData, v)
             }
-        }
-
-        StyledText {
-            Layout.preferredWidth: 38
-            Layout.alignment: Qt.AlignBottom
-            horizontalAlignment: Text.AlignRight
-            text: `${Math.round(stream.volume * 100)}%`
-            color: Theme.subtext1
         }
     }
 
@@ -110,35 +111,55 @@ BarPopup {
         readonly property real volume: node?.audio?.volume ?? 0
 
         Layout.fillWidth: true
-        spacing: 6
+        spacing: 8
 
-        RowLayout {
-            Layout.fillWidth: true
+        SectionLabel {
+            text: channel.title
 
-            StyledText {
-                text: channel.title
-                font.weight: Font.DemiBold
-            }
+            // Current device; opens the picker when there is a choice.
+            MouseArea {
+                id: picker
 
-            StyledText {
-                Layout.fillWidth: true
-                text: Audio.nameOf(channel.node)
-                color: Theme.subtext0
-                font.pixelSize: Theme.smallFontSize
-                horizontalAlignment: Text.AlignRight
-            }
-
-            IconButton {
-                size: 24
-                visible: channel.devices.length > 1
-                icon: Icons.chevronRight
-                rotation: channel.expanded ? 90 : 0
-                color: Theme.subtext0
+                implicitWidth: pickRow.implicitWidth + 16
+                implicitHeight: 26
+                enabled: channel.devices.length > 1
+                hoverEnabled: true
+                cursorShape: enabled ? Qt.PointingHandCursor : Qt.ArrowCursor
                 onClicked: channel.expanded = !channel.expanded
 
-                Behavior on rotation {
-                    NumberAnimation {
-                        duration: Theme.anim
+                Rectangle {
+                    anchors.fill: parent
+                    radius: height / 2
+                    color: channel.expanded ? Qt.alpha(Theme.accent, 0.18) : picker.containsMouse ? Theme.hover : "transparent"
+                }
+
+                Row {
+                    id: pickRow
+
+                    anchors.centerIn: parent
+                    spacing: 4
+
+                    StyledText {
+                        anchors.verticalCenter: parent.verticalCenter
+                        width: Math.min(implicitWidth, 200)
+                        text: Audio.nameOf(channel.node)
+                        color: Theme.subtext1
+                        font.pixelSize: Theme.smallFontSize
+                    }
+
+                    Icon {
+                        anchors.verticalCenter: parent.verticalCenter
+                        visible: picker.enabled
+                        text: Icons.chevronRight
+                        size: 13
+                        color: Theme.subtext0
+                        rotation: channel.expanded ? 90 : 0
+
+                        Behavior on rotation {
+                            NumberAnimation {
+                                duration: Theme.anim
+                            }
+                        }
                     }
                 }
             }
@@ -149,23 +170,44 @@ BarPopup {
             spacing: 10
 
             IconButton {
+                size: 34
                 icon: channel.muted ? channel.mutedIcon : channel.icon
-                color: channel.muted ? Theme.overlay1 : Theme.accent
+                color: channel.muted ? Theme.red : Theme.text
                 onClicked: Audio.toggleMute(channel.node)
             }
 
             StyledSlider {
                 Layout.fillWidth: true
+                thickness: 26
                 value: channel.volume
                 fill: channel.muted ? Theme.overlay0 : Theme.accent
                 onMoved: v => Audio.setVolume(channel.node, v)
             }
 
-            StyledText {
-                Layout.preferredWidth: 38
-                horizontalAlignment: Text.AlignRight
-                text: `${Math.round(channel.volume * 100)}%`
-                color: Theme.subtext1
+            Row {
+                Layout.preferredWidth: 46
+                layoutDirection: Qt.RightToLeft
+
+                StyledText {
+                    anchors.baseline: pct.baseline
+                    text: "%"
+                    color: Theme.subtext0
+                    font.pixelSize: Theme.smallFontSize
+                    font.weight: Font.Bold
+                }
+
+                StyledText {
+                    id: pct
+
+                    text: channel.muted ? "—" : Math.round(channel.volume * 100)
+                    color: channel.muted ? Theme.overlay1 : Theme.text
+                    font.family: Theme.displayFont
+                    font.pixelSize: 20
+                    font.weight: Font.ExtraBold
+                    font.features: {
+                        "tnum": 1
+                    }
+                }
             }
         }
 
@@ -207,7 +249,7 @@ BarPopup {
                         readonly property bool current: modelData === channel.node
 
                         width: deviceList.width
-                        height: 32
+                        height: 36
                         hoverEnabled: true
                         cursorShape: Qt.PointingHandCursor
                         onClicked: {
@@ -219,19 +261,20 @@ BarPopup {
 
                         Rectangle {
                             anchors.fill: parent
-                            radius: Theme.innerRadius
-                            color: dev.current ? Qt.alpha(Theme.accent, 0.15) : dev.containsMouse ? Theme.hover : "transparent"
+                            radius: height / 2
+                            color: dev.current ? Qt.alpha(Theme.accent, 0.16) : dev.containsMouse ? Theme.hover : "transparent"
                         }
 
                         RowLayout {
                             anchors.fill: parent
-                            anchors.leftMargin: 10
-                            anchors.rightMargin: 10
+                            anchors.leftMargin: 14
+                            anchors.rightMargin: 12
 
                             StyledText {
                                 Layout.fillWidth: true
                                 text: Audio.nameOf(dev.modelData)
                                 color: dev.current ? Theme.accent : Theme.text
+                                font.weight: dev.current ? Font.DemiBold : Font.Normal
                             }
 
                             Icon {
@@ -246,9 +289,15 @@ BarPopup {
         }
     }
 
+    PanelHeader {
+        Layout.preferredWidth: 360
+        icon: Audio.muted ? Icons.volumeOff : Icons.volumeHigh
+        lit: !Audio.muted
+        title: "Sound"
+        subtitle: Audio.micInUse ? "Microphone in use" : Audio.playback.length > 0 ? `${Audio.playback.length} app${Audio.playback.length > 1 ? "s" : ""} playing` : "Nothing playing"
+    }
+
     Channel {
-        Layout.preferredWidth: 340
-        Layout.fillWidth: true
         title: "Output"
         node: Audio.sink
         devices: Audio.sinks
@@ -259,16 +308,11 @@ BarPopup {
     // Per-app mixer.
     ColumnLayout {
         Layout.fillWidth: true
-        Layout.topMargin: 2
         visible: Audio.playback.length > 0
-        spacing: 4
+        spacing: 10
 
-        StyledText {
-            text: "APPS"
-            color: Theme.overlay2
-            font.pixelSize: Theme.smallFontSize
-            font.letterSpacing: 1
-            font.weight: Font.DemiBold
+        SectionLabel {
+            text: "Apps"
         }
 
         Repeater {
@@ -280,12 +324,6 @@ BarPopup {
         }
     }
 
-    Rectangle {
-        Layout.fillWidth: true
-        implicitHeight: 1
-        color: Theme.surface0
-    }
-
     Channel {
         title: "Input"
         node: Audio.source
@@ -295,23 +333,47 @@ BarPopup {
     }
 
     // Who is using the microphone right now.
-    RowLayout {
+    Rectangle {
         Layout.fillWidth: true
         visible: Audio.micInUse
-        spacing: 8
+        implicitHeight: 34
+        radius: height / 2
+        color: Qt.alpha(Theme.red, 0.12)
 
-        Rectangle {
-            implicitWidth: 8
-            implicitHeight: 8
-            radius: 4
-            color: Theme.red
-        }
+        RowLayout {
+            anchors.fill: parent
+            anchors.leftMargin: 14
+            anchors.rightMargin: 14
+            spacing: 8
 
-        StyledText {
-            Layout.fillWidth: true
-            text: `Recording: ${[...new Set(Audio.recording.map(n => Audio.appNameOf(n)))].join(", ")}`
-            color: Theme.subtext1
-            font.pixelSize: Theme.smallFontSize
+            Rectangle {
+                implicitWidth: 8
+                implicitHeight: 8
+                radius: 4
+                color: Theme.red
+
+                SequentialAnimation on opacity {
+                    running: Audio.micInUse && root.visible
+                    loops: Animation.Infinite
+
+                    NumberAnimation {
+                        to: 0.3
+                        duration: 700
+                    }
+                    NumberAnimation {
+                        to: 1
+                        duration: 700
+                    }
+                }
+            }
+
+            StyledText {
+                Layout.fillWidth: true
+                text: `Recording · ${[...new Set(Audio.recording.map(n => Audio.appNameOf(n)))].join(", ")}`
+                color: Theme.red
+                font.pixelSize: Theme.smallFontSize + 1
+                font.weight: Font.DemiBold
+            }
         }
     }
 }

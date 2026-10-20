@@ -20,9 +20,9 @@ Rectangle {
     }
 
     implicitWidth: row.implicitWidth + 8
-    implicitHeight: 34
+    implicitHeight: 36
     radius: height / 2
-    color: Qt.alpha(Theme.surface0, 0.8)
+    color: Theme.well
 
     Rectangle {
         visible: root.currentItem !== null
@@ -31,12 +31,24 @@ Rectangle {
         width: root.currentItem?.width ?? 0
         height: parent.height - 8
         radius: height / 2
-        color: Theme.accent
+        gradient: Gradient {
+            orientation: Gradient.Horizontal
+
+            GradientStop {
+                position: 0
+                color: Theme.accent
+            }
+            GradientStop {
+                position: 1
+                color: Theme.accent2
+            }
+        }
 
         Behavior on x {
             NumberAnimation {
                 duration: Theme.anim
-                easing.type: Easing.OutCubic
+                easing.type: Easing.OutBack
+                easing.overshoot: 1.2
             }
         }
         Behavior on width {

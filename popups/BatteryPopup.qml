@@ -17,40 +17,68 @@ BarPopup {
         return h > 0 ? `${h} h ${m} min` : `${m} min`;
     }
 
-    RowLayout {
-        Layout.preferredWidth: 320
-        Layout.fillWidth: true
-        spacing: 14
-
-        Icon {
-            text: Icons.batteryLevel(root.dev.percentage, root.charging)
-            size: 36
-            color: root.charging ? Theme.green : root.dev.percentage < 0.15 ? Theme.red : Theme.accent
+    PanelHeader {
+        Layout.preferredWidth: 340
+        icon: Icons.batteryLevel(root.dev.percentage, root.charging)
+        lit: root.charging || root.dev.percentage >= 0.15
+        title: "Battery"
+        subtitle: {
+            if (root.full)
+                return "Fully charged";
+            if (root.charging)
+                return root.dev.timeToFull > 0 ? `Full in ${root.duration(root.dev.timeToFull)}` : "Charging";
+            return root.dev.timeToEmpty > 0 ? `${root.duration(root.dev.timeToEmpty)} remaining` : "On battery";
         }
 
-        ColumnLayout {
-            Layout.fillWidth: true
-            spacing: 0
-
+        Row {
             StyledText {
-                Layout.fillWidth: true
-                text: `${Math.round(root.dev.percentage * 100)}%`
-                font.pixelSize: 24
-                font.weight: Font.DemiBold
+                id: pct
+
+                text: Math.round(root.dev.percentage * 100)
+                font.family: Theme.displayFont
+                font.pixelSize: 30
+                font.weight: Font.Black
+                color: root.charging ? Theme.green : root.dev.percentage < 0.15 ? Theme.red : Theme.text
             }
 
             StyledText {
-                Layout.fillWidth: true
+                anchors.baseline: pct.baseline
+                text: "%"
+                font.pixelSize: 13
+                font.weight: Font.Bold
                 color: Theme.subtext0
-                text: {
-                    if (root.full)
-                        return "Fully charged";
-                    if (root.charging)
-                        return root.dev.timeToFull > 0 ? `Full in ${root.duration(root.dev.timeToFull)}` : "Charging";
-                    return root.dev.timeToEmpty > 0 ? `${root.duration(root.dev.timeToEmpty)} remaining` : "On battery";
+            }
+        }
+    }
+
+    // Charge as a fat capsule.
+    Rectangle {
+        Layout.fillWidth: true
+        implicitHeight: 14
+        radius: 7
+        color: Theme.well
+
+        Rectangle {
+            width: Math.max(height, parent.width * root.dev.percentage)
+            height: parent.height
+            radius: parent.radius
+            gradient: Gradient {
+                orientation: Gradient.Horizontal
+
+                GradientStop {
+                    position: 0
+                    color: root.charging ? Theme.green : root.dev.percentage < 0.15 ? Theme.red : Theme.accent
+                }
+                GradientStop {
+                    position: 1
+                    color: root.charging ? Theme.teal : root.dev.percentage < 0.15 ? Theme.peach : Theme.accent2
                 }
             }
         }
+    }
+
+    SectionLabel {
+        text: "Power profile"
 
         StyledText {
             visible: root.dev.healthSupported
@@ -58,14 +86,6 @@ BarPopup {
             font.pixelSize: Theme.smallFontSize
             color: Theme.subtext0
         }
-    }
-
-    StyledText {
-        text: "POWER PROFILE"
-        font.pixelSize: Theme.smallFontSize
-        font.weight: Font.DemiBold
-        font.letterSpacing: 0.6
-        color: Theme.overlay2
     }
 
     ProfilePicker {

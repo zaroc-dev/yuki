@@ -51,12 +51,12 @@ LazyLoader {
             id: panel
 
             anchors.centerIn: parent
-            width: Math.min(940, parent.width - 80)
-            height: Math.min(640, parent.height - 120)
-            radius: Theme.radius + 6
+            width: Math.min(980, parent.width - 80)
+            height: Math.min(680, parent.height - 120)
+            radius: 30
             color: Theme.popupBg
             border.width: 1
-            border.color: Theme.barBorder
+            border.color: Theme.rim
             focus: true
             Keys.onEscapePressed: Ui.settingsOpen = false
             opacity: 0
@@ -83,6 +83,22 @@ LazyLoader {
                 onClicked: panel.forceActiveFocus()
             }
 
+            // Aurora light falling in from the top edge.
+            Rectangle {
+                anchors.fill: parent
+                radius: parent.radius
+                gradient: Gradient {
+                    GradientStop {
+                        position: 0
+                        color: Qt.alpha(Theme.accent, Theme.dark ? 0.1 : 0.16)
+                    }
+                    GradientStop {
+                        position: 0.35
+                        color: "transparent"
+                    }
+                }
+            }
+
             RowLayout {
                 anchors.fill: parent
                 spacing: 0
@@ -90,32 +106,50 @@ LazyLoader {
                 // ---------- sidebar ----------
                 Rectangle {
                     Layout.fillHeight: true
-                    Layout.preferredWidth: 220
+                    Layout.preferredWidth: 236
                     topLeftRadius: panel.radius
                     bottomLeftRadius: panel.radius
-                    color: Qt.alpha(Theme.mantle, 0.5)
+                    color: Theme.well
 
                     ColumnLayout {
                         anchors.fill: parent
-                        anchors.margins: 14
+                        anchors.margins: 16
                         spacing: 4
 
                         RowLayout {
-                            Layout.bottomMargin: 14
-                            Layout.leftMargin: 6
-                            Layout.topMargin: 6
-                            spacing: 10
+                            Layout.bottomMargin: 18
+                            Layout.leftMargin: 4
+                            Layout.topMargin: 4
+                            spacing: 12
 
-                            Icon {
-                                text: Icons.settings
-                                size: 20
-                                color: Theme.accent
+                            Rectangle {
+                                implicitWidth: 38
+                                implicitHeight: 38
+                                radius: 13
+                                gradient: Gradient {
+                                    GradientStop {
+                                        position: 0
+                                        color: Theme.accent
+                                    }
+                                    GradientStop {
+                                        position: 1
+                                        color: Theme.accent2
+                                    }
+                                }
+
+                                Icon {
+                                    anchors.centerIn: parent
+                                    text: Icons.settings
+                                    size: 19
+                                    color: Theme.onAccent
+                                }
                             }
 
                             StyledText {
                                 text: "Settings"
-                                font.pixelSize: 17
-                                font.weight: Font.DemiBold
+                                font.family: Theme.displayFont
+                                font.pixelSize: 21
+                                font.weight: Font.Black
                             }
                         }
 
@@ -129,48 +163,57 @@ LazyLoader {
                                 readonly property bool current: win.page.id === modelData.id
 
                                 Layout.fillWidth: true
-                                implicitHeight: 40
+                                implicitHeight: 42
                                 hoverEnabled: true
                                 cursorShape: Qt.PointingHandCursor
                                 onClicked: Ui.settingsPage = modelData.id
 
                                 Rectangle {
                                     anchors.fill: parent
-                                    radius: Theme.innerRadius + 2
-                                    color: nav.current ? Qt.alpha(Theme.accent, 0.16) : nav.containsMouse ? Theme.hover : "transparent"
+                                    radius: height / 2
+                                    color: nav.containsMouse ? Theme.hover : "transparent"
+                                }
 
-                                    Behavior on color {
-                                        ColorAnimation {
+                                // The current page is an aurora pill.
+                                Rectangle {
+                                    anchors.fill: parent
+                                    radius: height / 2
+                                    opacity: nav.current ? 1 : 0
+                                    gradient: Gradient {
+                                        orientation: Gradient.Horizontal
+
+                                        GradientStop {
+                                            position: 0
+                                            color: Theme.accent
+                                        }
+                                        GradientStop {
+                                            position: 1
+                                            color: Theme.accent2
+                                        }
+                                    }
+
+                                    Behavior on opacity {
+                                        NumberAnimation {
                                             duration: Theme.anim
                                         }
                                     }
                                 }
 
-                                Rectangle {
-                                    visible: nav.current
-                                    anchors.left: parent.left
-                                    anchors.verticalCenter: parent.verticalCenter
-                                    width: 3
-                                    height: 18
-                                    radius: 2
-                                    color: Theme.accent
-                                }
-
                                 RowLayout {
                                     anchors.fill: parent
-                                    anchors.leftMargin: 14
+                                    anchors.leftMargin: 16
                                     spacing: 12
 
                                     Icon {
                                         text: nav.modelData.icon
-                                        color: nav.current ? Theme.accent : Theme.subtext0
+                                        color: nav.current ? Theme.onAccent : Theme.subtext0
                                     }
 
                                     StyledText {
                                         Layout.fillWidth: true
                                         text: nav.modelData.label
-                                        color: nav.current ? Theme.text : Theme.subtext1
-                                        font.weight: nav.current ? Font.DemiBold : Font.Normal
+                                        color: nav.current ? Theme.onAccent : Theme.subtext1
+                                        font.weight: nav.current ? Font.Bold : Font.Medium
                                     }
                                 }
                             }
@@ -193,9 +236,9 @@ LazyLoader {
                 ColumnLayout {
                     Layout.fillWidth: true
                     Layout.fillHeight: true
-                    Layout.margins: 24
-                    Layout.rightMargin: 18
-                    spacing: 18
+                    Layout.margins: 28
+                    Layout.rightMargin: 20
+                    spacing: 20
 
                     RowLayout {
                         Layout.fillWidth: true
@@ -207,8 +250,10 @@ LazyLoader {
                             StyledText {
                                 Layout.fillWidth: true
                                 text: win.page.title
-                                font.pixelSize: 22
-                                font.weight: Font.DemiBold
+                                font.family: Theme.displayFont
+                                font.pixelSize: 30
+                                font.weight: Font.Black
+                                font.letterSpacing: -0.5
                             }
 
                             StyledText {

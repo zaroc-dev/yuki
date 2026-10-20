@@ -23,10 +23,15 @@
 | glyph | `Icon { text: Icons.x }` (ink-centered) |
 | app icon | `AppIcon { appId / iconName }` (falls back to a glyph) |
 | bar chunk | `BarButton` (hover/pressed/active background, left/right/middle clicks) |
-| round button | `IconButton` (`filled` for primary) |
-| dropdown | `BarPopup { name; target }` + `Layout.fillWidth` header rows |
+| round button | `IconButton` (`filled` for primary: aurora gradient) |
+| dropdown | `BarPopup { name; target }` + `Layout.fillWidth` header rows (`backdrop:` for full-bleed art) |
+| panel header | `PanelHeader { icon; title; subtitle; lit; <trailing controls> }` |
+| group label | `SectionLabel { text; <trailing controls> }` (caps + fading rule) |
+| keyboard overlay from the bar | `DropSheet { bodyWidth; onDismissed }` (launcher, clipboard) |
+| anything hanging from the bar | `Surface` + `SurfaceRegion` at `y = Theme.barHeight` (OSD, toasts); tell the bar its x-range (`Ui.*Screen`/`*Width`) so the horizon opens there |
+| a round corner piece (fillet, rim arc, dim around a corner) | `Corner { size; band; flipX; flipY }`, static path, move it instead of re-pathing |
 | switch / choice | `Toggle`, `Segmented { options: [{value,label,icon}] }` |
-| slider | `StyledSlider` (`onMoved: v => …`) |
+| slider | `StyledSlider` (`onMoved: v => …`; `thickness` 22–26 for volume-like, < 12 = thin with a knob, `icon` inside) |
 | text input | `TextField { placeholder; icon; password }` (`accepted`/`cancelled`; Escape doesn't close the popup) |
 | settings row | `SettingRow { label; description; icon/appIcon; <control> }` inside `Section` inside `Page` |
 | notification | `Notifs.notify({ summary, body, image, actions: [{ text, run }] })` |
