@@ -19,6 +19,9 @@ Item {
     readonly property bool busy: Lock.state === "busy"
     readonly property bool bad: Lock.state === "failed" || Lock.state === "error"
     property string armed: ""
+    // Whether the compositor gives this surface the keyboard. Logged, since a
+    // lock that never gets keys is otherwise invisible after the fact.
+    readonly property bool hasKeyboard: Window.active
 
     function act(id) {
         if (armed !== id) {
@@ -35,6 +38,11 @@ Item {
     Component.onCompleted: {
         phase = 1;
         input.forceActiveFocus();
+    }
+    onHasKeyboardChanged: {
+        console.info(`Lock: ${screenName} ${hasKeyboard ? "got" : "lost"} keyboard focus`);
+        if (hasKeyboard)
+            input.forceActiveFocus();
     }
 
     Behavior on phase {

@@ -35,13 +35,27 @@ Singleton {
         if (shown)
             return;
         reset();
+        closeOverlays();
         locked = true;
+    }
+
+    // Anything that holds the keyboard (a pointer-opened popup's grab, the
+    // exclusive-focus sheets, the switcher) is pointless under the lock and
+    // may keep keys from reaching the password field.
+    function closeOverlays() {
+        if (Ui.activePopup)
+            Ui.activePopup.close();
+        Ui.launcherOpen = false;
+        Ui.clipboardOpen = false;
+        Ui.settingsOpen = false;
+        Switcher.cancel();
     }
 
     function showPreview() {
         if (shown)
             return;
         reset();
+        closeOverlays();
         preview = true;
     }
 

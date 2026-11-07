@@ -156,3 +156,12 @@ elsewhere.
   fullscreen flag, and `ToplevelManager.activeToplevel` goes null as soon as
   a sheet takes keyboard focus, so it compares the active window's size to
   the output's.
+- **A lock screen that takes no keys** (seen once after an idle lock, cause
+  unknown, mouse still worked). `Lock.lock()` closes everything that holds
+  the keyboard first, and `LockSurface` logs `Lock: <output> got/lost keyboard
+  focus`. If it happens again, don't reboot: switch to a TTY (Ctrl+Alt+F3),
+  save `/run/user/$UID/quickshell/by-id/*/log.qslog` (gone after a reboot),
+  then kill quickshell and start `yuki` again via `NIRI_SOCKET=$(echo
+  /run/user/$UID/niri.*.sock) niri msg action spawn -- yuki`; niri stays
+  locked meanwhile, and the restarted shell re-locks from the failsafe marker
+  with fresh surfaces.
