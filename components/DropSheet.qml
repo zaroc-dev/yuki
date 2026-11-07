@@ -17,6 +17,9 @@ PanelWindow {
     property real bodyWidth: 620
     property real padding: 14
     readonly property real bodyX: Math.round((width - bodyWidth) / 2)
+    // Hangs from the bar, or from the screen edge over a fullscreen window
+    // (which hides the bar).
+    readonly property real bodyY: Niri.fullscreenOn(screen?.name ?? "") ? 0 : Theme.barHeight
     property real bodyHeight: column.implicitHeight + padding * 2
     property real reveal: 0
 
@@ -62,7 +65,7 @@ PanelWindow {
         id: blurRegion
 
         bodyX: root.bodyX
-        bodyY: Theme.barHeight
+        bodyY: root.bodyY
         bodyWidth: root.bodyWidth
         bodyHeight: clip.height
     }
@@ -73,7 +76,7 @@ PanelWindow {
         id: dim
 
         readonly property color tint: Qt.alpha(Theme.crust, 0.45)
-        readonly property real y0: Theme.barHeight
+        readonly property real y0: root.bodyY
         readonly property real x0: root.bodyX
         readonly property real x1: root.bodyX + root.bodyWidth
 
@@ -157,7 +160,7 @@ PanelWindow {
         id: surface
 
         x: root.bodyX - Theme.fillet
-        y: Theme.barHeight
+        y: root.bodyY
         bodyWidth: root.bodyWidth
         bodyHeight: clip.height
     }
@@ -166,7 +169,7 @@ PanelWindow {
         id: clip
 
         x: root.bodyX
-        y: Theme.barHeight
+        y: root.bodyY
         width: root.bodyWidth
         height: Math.round(root.bodyHeight * root.reveal)
         clip: true

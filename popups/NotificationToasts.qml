@@ -22,6 +22,7 @@ Variants {
         // The notification center lists the same things.
         readonly property var popups: active && Ui.activePopup?.name !== "notifications" ? Notifs.popups.filter(n => n) : []
         readonly property real padding: 10
+        readonly property bool fullscreen: Niri.fullscreenOn(modelData.name)
         property real drawerHeight: popups.length > 0 ? column.implicitHeight + padding * 2 : 0
 
         visible: popups.length > 0 || drawerHeight > 0.5
@@ -41,7 +42,9 @@ Variants {
             top: true
             right: true
         }
-        // Zone 0: placed under the bar, flush with its bottom edge.
+        // Zone 0: placed under the bar, flush with its bottom edge. Over a
+        // fullscreen window the bar is hidden: drop from the screen corner.
+        exclusionMode: fullscreen ? ExclusionMode.Ignore : ExclusionMode.Normal
         exclusiveZone: 0
         implicitWidth: 400 + Theme.fillet
         // Keeps the old height while the drawer folds up.
