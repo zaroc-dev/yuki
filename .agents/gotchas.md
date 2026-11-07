@@ -80,6 +80,10 @@ elsewhere.
   `worker.ready` (earlier ones are dropped silently).
 - Canvas `drawImage(item)` of an `Image` with opacity 0 yields transparent
   pixels; use `loadImage(url)` + `drawImage(url, …)`.
+- A Canvas in a covered background window may never initialize or paint.
+  The wallpaper seed extractor uses a 1×1 transparent, input-transparent
+  overlay only while needed, and reads pixels on image load. Rinka can cover
+  the shell's backgrounds completely, so `onPaint` is not a reliable trigger.
 
 ## Quickshell / Wayland / niri
 

@@ -94,12 +94,25 @@ backdrops immediately. Choices are preserved and still used for the lock screen
 and dynamic colors; turning management back on restores them. The setting
 `wallpaperEnabled` defaults to `true` and persists across restarts.
 
+[Rinka](https://github.com/zaroc-dev/rinka) is detected automatically when
+its host exports wallpaper stills. Yuki uses the assigned wallpaper's
+rendered colors and yields its desktop and overview surfaces on those
+outputs. Unassigned outputs keep Yuki's wallpaper. The lock screen uses
+Rinka's still too, and stopping Rinka restores Yuki's saved choices. This
+also works with **Manage wallpapers** off.
+
+Choose **Wallpaper** as the color source and select the output under
+**Colors from**. Rinka stills refresh on assignment, project edits and output
+size changes; animated wallpapers keep a stable theme between changes.
+The default host socket is `$XDG_RUNTIME_DIR/rinka/host.sock`; `RINKA_SOCKET`
+can select another endpoint when launching Yuki.
+
 With the color source set to `wallpaper`, the seed color of one output's wallpaper
 (the output at 0,0 unless set otherwise) is extracted with Google's
 material-color-utilities (vendored in `lib/mcu`, run in a WorkerScript) and turned
 into a Material You scheme. `tonal-spot` is the same scheme noctalia's
 `m3-tonal-spot` uses, so you get matching colors. Seeds are cached per image in
-the settings file.
+the settings file. Seeds for Rinka's temporary stills stay in memory.
 
 ## Power menu & lock screen
 

@@ -17,9 +17,16 @@ Singleton {
     // Defaults to the output at the layout origin (usually the primary one).
     readonly property string colorScreen: Settings.d.colorScreen || ((Quickshell.screens.find(s => s.x === 0 && s.y === 0) ?? Quickshell.screens[0])?.name ?? "")
     readonly property string colorSourcePath: pathFor(colorScreen)
+    // Runtime stills are replaced after edits and disappear with the host.
+    property var rinkaSeed: ({ path: "", seed: "" })
+    readonly property string colorSeed: managedByRinka(colorScreen) ? (rinkaSeed.path === colorSourcePath ? rinkaSeed.seed : "") : (Settings.d.seeds[colorSourcePath] ?? "")
+
+    function managedByRinka(screenName) {
+        return Rinka.imageFor(screenName) !== "";
+    }
 
     function pathFor(screenName) {
-        return Settings.expand(Settings.d.wallpapers[screenName] ?? "") || fallback;
+        return Rinka.imageFor(screenName) || Settings.expand(Settings.d.wallpapers[screenName] ?? "") || fallback;
     }
 
     function hasOwn(screenName) {

@@ -59,7 +59,7 @@ Singleton {
     readonly property string flavor: settings.flavor in flavors && settings.flavor !== "latte" ? settings.flavor : "mocha"
     readonly property bool lightMode: settings.themeMode === "light"
     // Seed color for wallpaper theming, extracted by wallpaper/ColorExtractor.
-    readonly property string seed: settings.seeds[Wallpapers.colorSourcePath] ?? ""
+    readonly property string seed: Wallpapers.colorSeed
 
     // Shell palette with Catppuccin-shaped keys, whatever the source.
     // "custom" merges settings.custom over mocha, for external generators.
@@ -156,7 +156,7 @@ Singleton {
 
     // ---- palette ----
     readonly property bool dark: p.dark
-    readonly property color accent: dynamic ? p.primary : p[settings.accent] ?? p.mauve
+    readonly property color accent: dynamic ? (p.primary ?? p.mauve) : p[settings.accent] ?? p.mauve
     readonly property color base: p.base
     readonly property color mantle: p.mantle
     readonly property color crust: p.crust
