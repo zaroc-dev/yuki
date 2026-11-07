@@ -42,6 +42,19 @@ Singleton {
         return ws && ws.active_window_id !== null ? windows[ws.active_window_id] ?? null : null;
     }
 
+    // A fullscreen window covers the bar (niri draws it above the top layer)
+    // but its exclusive zone stays, so surfaces hanging from the bar would
+    // float a bar's height below the screen edge. The IPC has no fullscreen
+    // flag, and foreign-toplevel's activated state drops as soon as a sheet
+    // takes keyboard focus, so: the output's active window covers it all.
+    function fullscreenOn(output) {
+        if (overviewOpen)
+            return false;
+        const size = activeWindowOn(output)?.layout?.window_size;
+        const screen = Quickshell.screens.find(s => s.name === output);
+        return !!(size && screen && size[0] >= screen.width && size[1] >= screen.height);
+    }
+
     function windowCount(workspaceId) {
         let n = 0;
         for (const id in windows)

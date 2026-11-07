@@ -19,6 +19,7 @@ Variants {
         readonly property real bodyWidth: 340
         readonly property real bodyHeight: 64
         property real reveal: active && Osd.shown ? 1 : 0
+        readonly property bool fullscreen: Niri.fullscreenOn(modelData.name)
 
         screen: modelData
         visible: reveal > 0.001
@@ -35,7 +36,9 @@ Variants {
                 Ui.osdScreen = "";
         }
         anchors.top: true
-        // Zone 0: placed under the bar, flush with its bottom edge.
+        // Zone 0: placed under the bar, flush with its bottom edge. Over a
+        // fullscreen window the bar is hidden: hang from the screen edge.
+        exclusionMode: fullscreen ? ExclusionMode.Ignore : ExclusionMode.Normal
         exclusiveZone: 0
         implicitWidth: bodyWidth + Theme.fillet * 2
         implicitHeight: bodyHeight + Theme.fillet

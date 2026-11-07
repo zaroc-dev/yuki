@@ -148,3 +148,11 @@ elsewhere.
   (with `timeout`).
 - Foreground `sleep` is blocked in some agent harnesses; `python3 -c
   "import time; time.sleep(n)"` works.
+- **Fullscreen hides the bar but not its exclusive zone.** niri draws a
+  fullscreen window above the top layer, yet zone-0 overlays (OSD, toasts)
+  still land below the bar's zone. Anything that hangs from the bar checks
+  `Niri.fullscreenOn(output)` and switches to the screen edge
+  (`ExclusionMode.Ignore`, or `bodyY: 0` in `DropSheet`). niri's IPC has no
+  fullscreen flag, and `ToplevelManager.activeToplevel` goes null as soon as
+  a sheet takes keyboard focus, so it compares the active window's size to
+  the output's.
