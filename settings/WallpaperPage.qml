@@ -11,7 +11,7 @@ Page {
 
     // Output being edited, or "all" for every output.
     property string target: Niri.focusedOutput || "all"
-    readonly property string current: target === "all" ? Wallpapers.fallback : Wallpapers.pathFor(target)
+    readonly property string current: target === "all" ? Wallpapers.fallback : Wallpapers.savedPathFor(target)
 
     Section {
         title: "Management"
@@ -113,7 +113,7 @@ Page {
 
                     required property string modelData
                     readonly property bool selected: modelData === root.current
-                    readonly property var usedOn: Settings.d.wallpaperEnabled ? Quickshell.screens.filter(s => Wallpapers.pathFor(s.name) === modelData).map(s => s.name) : []
+                    readonly property var usedOn: Settings.d.wallpaperEnabled ? Quickshell.screens.filter(s => Wallpapers.savedPathFor(s.name) === modelData).map(s => s.name) : []
 
                     Layout.fillWidth: true
                     Layout.preferredHeight: width * 9 / 16 + 26

@@ -162,8 +162,12 @@ output matches noctalia/matugen closely (verified: `#b3c5ff` vs `#b4c5ff`).
 
 Rinka seeds use the same worker, but live in `Wallpapers.rinkaSeed`, keyed by
 the still's unique path. They do not accumulate in settings. ColorExtractor
-reads Canvas pixels on image load in a temporary 1×1 transparent overlay;
-it does not wait for painting on a covered background surface.
+reads Canvas pixels on image load in a 1×1 transparent overlay, created per
+extraction; it does not wait for painting on a covered background surface.
+While a new still is extracted, the previous Rinka seed (or the saved
+wallpaper's) stays, so edits don't flash the fallback palette.
+`Wallpapers.pathFor` is what an output shows; `savedPathFor` is Yuki's own
+choice, used by its surfaces, the wallpaper page and stepping.
 
 ## Windows & layers (niri namespaces)
 

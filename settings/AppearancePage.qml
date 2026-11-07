@@ -131,7 +131,7 @@ Page {
         SettingRow {
             visible: root.wallpaperMode
             label: "Seed color"
-            description: Theme.seed ? (Wallpapers.managedByRinka(Wallpapers.colorScreen) ? `From Rinka on ${Wallpapers.colorScreen}` : `Extracted from ${Wallpapers.colorSourcePath.split("/").pop()}`) : "Extracting…"
+            description: Theme.seed ? (Wallpapers.colorFromRinka ? `From Rinka on ${Wallpapers.colorScreen}` : `Extracted from ${Wallpapers.colorSourcePath.split("/").pop()}`) : "Extracting…"
 
             Row {
                 spacing: 8

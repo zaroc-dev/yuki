@@ -84,6 +84,9 @@ elsewhere.
   The wallpaper seed extractor uses a 1×1 transparent, input-transparent
   overlay only while needed, and reads pixels on image load. Rinka can cover
   the shell's backgrounds completely, so `onPaint` is not a reliable trigger.
+- Hiding a Canvas's window drops its context for good: after `visible: false`
+  → `true`, `context` stays null and `getContext()` yields one that never
+  reports loaded images. Create a fresh window (`LazyLoader`) per use.
 
 ## Quickshell / Wayland / niri
 
