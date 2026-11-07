@@ -38,6 +38,10 @@ elsewhere.
   bind to the cached result.
 - **`property alias x: someVarObject.y`** is invalid; aliases need `id.property`.
 - **Inline `component`s**: declare them at the document root.
+- **"`Foo` is not a type"** for an inline component used inside a
+  `Component {}` in `services/Net.qml` (the same pattern works in `Vpn.qml`;
+  cause unknown). It takes down every singleton loaded after it. Declare the
+  object directly inside the `Component {}` instead.
 - **An `id` shadows a property of the same name.** QML resolves ids before the
   scope object's properties: a label with `id: count` inside a `ListView`'s file
   made the list's own `visible: count > 0` compare an object (the launcher list

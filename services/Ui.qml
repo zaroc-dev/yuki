@@ -8,7 +8,7 @@ Singleton {
     property bool launcherOpen: false
     property bool settingsOpen: false
     property bool clipboardOpen: false
-    // appearance | wallpaper | bar | notifications | start | about
+    // appearance | wallpaper | bar | network | bluetooth | notifications | start | system | about
     property string settingsPage: "appearance"
 
     // A press landed on one of the shell's own surfaces (which the popup grab

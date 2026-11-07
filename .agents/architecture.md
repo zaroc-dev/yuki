@@ -7,11 +7,14 @@ shell.qml        root ShellRoot: Backdrop/Wallpaper per screen, ColorExtractor, 
                  screen, NotificationToasts, Launcher, LockScreen, SettingsWindow,
                  ClipboardPanel, Osd, all IpcHandlers; touches lazy singletons
 config/          Settings (persisted JSON), Theme (palette), Wallpapers, Icons   ← no deps on services
-services/        singletons: Niri, Apps, Audio, Media, Net, Vpn, Notifs, Lock, Power, Ui,
+services/        singletons: Niri, Apps, Audio, Media, Net, Vpn, Bt, Notifs, Lock, Power, Ui,
                  Templates, Clipboard, Screenshots, Osd, Brightness, Idle
 components/      reusable UI: Surface, SurfaceRegion, BarPopup, DropSheet, BarButton,
                  PanelHeader, SectionLabel, IconButton, Icon, StyledText,
-                 StyledSlider, Toggle, Segmented, TextField, AppIcon, Avatar, NotificationCard, …
+                 StyledSlider, Toggle, Segmented, TextField, AppIcon, Avatar, NotificationCard,
+                 PillButton, Spinner, and the rows shared by popups and settings pages
+                 (WifiNetworkRow, WifiJoinForm, WiredCard, NetworkDetails, VpnRow,
+                 BluetoothDeviceRow), …
 bar/             Bar.qml (one PanelWindow per screen) + one file per widget
 popups/          BarPopup-based dropdowns + overlay windows (Launcher, ClipboardPanel,
                  NotificationToasts, Osd)
@@ -103,7 +106,10 @@ Import direction: `config` ← `services` ← `components` ← `bar`/`popups`/`s
   covers what the API can't (802.1X, hidden SSIDs): `nmcli connection add`,
   then the secret through stdin into `nmcli connection edit` (never argv:
   Quickshell logs failed commands), then `up`; deletes the profile on failure.
-  Used by `popups/WifiJoinForm.qml`.
+  Used by `components/WifiJoinForm.qml`. Owns the one `nmcli monitor`
+  (debounced `changed` signal, Vpn listens), `savedWifi` (all Wi-Fi profiles,
+  also out of range) and `details[iface]` (IP/gateway/DNS from `nmcli device
+  show`, fetched by `refreshDetails`).
 - **Vpn**: Mullvad via `mullvad status --json listen` + `mullvad connect|disconnect`
   (its tunnel isn't an NM connection), NM `wireguard`/`vpn` profiles via nmcli
   (refreshed on `nmcli monitor`; active profiles on "connected (externally)"
@@ -111,6 +117,12 @@ Import direction: `config` ← `services` ← `components` ← `bar`/`popups`/`s
   authenticate through `services/vpn-connect.py` in the desktop session; the
   cookie goes to nmcli on stdin and NetworkManager owns the resulting tunnel.
   Toggling off during login cancels the helper and any pending activation.
+  Profiles whose password isn't saved (`<key>-flags` has NOT_SAVED): the helper
+  exits 3, `secretNeeded[id]` opens the prompt in `VpnRow`, and the retry
+  passes `--secret-stdin` (password → `nmcli … passwd-file /dev/stdin`).
+  `importFile(path)` wraps `nmcli connection import` (autoconnect off after).
+- **Bt**: default adapter's devices grouped (`connected`, `paired`, `nearby`)
+  and `pair()`, which makes the adapter pairable first so BlueZ bonds.
 - **Templates**: debounced on palette change; writes niri/kitty/GTK/JSON into
   `~/.local/state/yuki/theme/`, then `niri msg action load-config-file` and
   `pkill -USR1` kitty.

@@ -2,12 +2,12 @@ import QtQuick
 import QtQuick.Layouts
 import Quickshell.Networking
 import qs.config
-import qs.components
 import qs.services
 
 // Card under a Wi-Fi row for joining it: a password for WPA networks, or the
 // 802.1X form for enterprise networks. With no `network` it's "Add network"
-// (hidden SSID, any security). Stays open until connected or failed.
+// (hidden SSID, any security). Stays open until connected or failed. Shared
+// by the network popup and Settings → Network.
 Rectangle {
     id: root
 
@@ -16,6 +16,7 @@ Rectangle {
     readonly property bool adding: network === null
     // open | psk | eap
     property string security: adding ? "psk" : Net.isEnterprise(network) ? "eap" : "psk"
+    // peap | ttls | tls (client certificate)
     property string eap: "peap"
     property string phase2: "mschapv2"
     // system | file | none
@@ -28,40 +29,6 @@ Rectangle {
     property string joiningSsid: ""
 
     signal finished
-
-    component FormButton: MouseArea {
-        id: btn
-
-        property string text
-        property bool primary: false
-
-        implicitWidth: label.implicitWidth + 28
-        implicitHeight: 30
-        hoverEnabled: true
-        cursorShape: Qt.PointingHandCursor
-
-        Rectangle {
-            anchors.fill: parent
-            radius: height / 2
-            color: btn.primary ? (btn.containsMouse ? Qt.lighter(Theme.accent, 1.08) : Theme.accent) : btn.pressed ? Theme.pressed : btn.containsMouse ? Theme.hover : Qt.alpha(Theme.surface1, 0.6)
-
-            Behavior on color {
-                ColorAnimation {
-                    duration: Theme.anim
-                }
-            }
-        }
-
-        StyledText {
-            id: label
-
-            anchors.centerIn: parent
-            text: btn.text
-            font.pixelSize: Theme.smallFontSize + 1
-            font.weight: btn.primary ? Font.DemiBold : Font.Normal
-            color: btn.primary ? Theme.onAccent : Theme.text
-        }
-    }
 
     // Shows the error and puts the cursor where it needs fixing.
     function fail(message, field) {
@@ -97,8 +64,12 @@ Rectangle {
             return fail("Wi-Fi passwords are 8 to 63 characters", password);
         if (security === "eap" && !identity.text.trim())
             return fail("Enter your username", identity);
-        if (security === "eap" && !password.text)
+        if (security === "eap" && eap !== "tls" && !password.text)
             return fail("Enter your password", password);
+        if (security === "eap" && eap === "tls" && !clientCert.text.trim())
+            return fail("Enter your certificate's path", clientCert);
+        if (security === "eap" && eap === "tls" && !privateKey.text.trim())
+            return fail("Enter your private key's path", privateKey);
         if (security === "eap" && ca === "file" && !caPath.text.trim()) {
             advanced = true;
             return fail("Enter the CA certificate's path", caPath);
@@ -117,7 +88,11 @@ Rectangle {
         if (security === "psk")
             s.push("wifi-sec.key-mgmt", "wpa-psk");
         if (security === "eap") {
-            s.push("wifi-sec.key-mgmt", "wpa-eap", "802-1x.eap", eap, "802-1x.phase2-auth", phase2, "802-1x.identity", identity.text.trim());
+            s.push("wifi-sec.key-mgmt", "wpa-eap", "802-1x.eap", eap, "802-1x.identity", identity.text.trim());
+            if (eap === "tls")
+                s.push("802-1x.client-cert", Settings.expand(clientCert.text.trim()), "802-1x.private-key", Settings.expand(privateKey.text.trim()));
+            else
+                s.push("802-1x.phase2-auth", phase2);
             if (anonymous.text.trim())
                 s.push("802-1x.anonymous-identity", anonymous.text.trim());
             if (domain.text.trim())
@@ -127,7 +102,13 @@ Rectangle {
             else if (ca === "file")
                 s.push("802-1x.ca-cert", Settings.expand(caPath.text.trim()));
         }
-        const secret = security === "psk" ? `wifi-sec.psk ${password.text}` : security === "eap" ? `802-1x.password ${password.text}` : "";
+        let secret = "";
+        if (security === "psk")
+            secret = `wifi-sec.psk ${password.text}`;
+        else if (security === "eap" && eap === "tls")
+            secret = password.text ? `802-1x.private-key-password ${password.text}` : "";
+        else if (security === "eap")
+            secret = `802-1x.password ${password.text}`;
         joiningSsid = ssid;
         Net.join(ssid, s, secret);
     }
@@ -226,7 +207,8 @@ Rectangle {
             visible: root.security === "eap"
             options: [
                 { value: "peap", label: "PEAP" },
-                { value: "ttls", label: "TTLS" }
+                { value: "ttls", label: "TTLS" },
+                { value: "tls", label: "Certificate (TLS)" }
             ]
             value: root.eap
             onSelected: v => root.eap = v
@@ -240,6 +222,30 @@ Rectangle {
             icon: Icons.account
             placeholder: "Username"
             readOnly: root.busy
+            onAccepted: (root.eap === "tls" ? clientCert : password).focusInput()
+            onCancelled: root.finished()
+        }
+
+        TextField {
+            id: clientCert
+
+            Layout.fillWidth: true
+            visible: root.security === "eap" && root.eap === "tls"
+            icon: Icons.certificate
+            placeholder: "Your certificate (.pem / .crt / .p12)"
+            readOnly: root.busy
+            onAccepted: privateKey.focusInput()
+            onCancelled: root.finished()
+        }
+
+        TextField {
+            id: privateKey
+
+            Layout.fillWidth: true
+            visible: root.security === "eap" && root.eap === "tls"
+            icon: Icons.key
+            placeholder: "Private key (.pem / .key / .p12)"
+            readOnly: root.busy
             onAccepted: password.focusInput()
             onCancelled: root.finished()
         }
@@ -250,7 +256,7 @@ Rectangle {
             Layout.fillWidth: true
             visible: root.security !== "open"
             icon: Icons.lock
-            placeholder: "Password"
+            placeholder: root.security === "eap" && root.eap === "tls" ? "Private key password (if encrypted)" : "Password"
             password: true
             readOnly: root.busy
             onAccepted: root.submit()
@@ -312,12 +318,14 @@ Rectangle {
             spacing: 8
 
             StyledText {
+                visible: root.eap !== "tls"
                 text: "Inner authentication"
                 font.pixelSize: Theme.smallFontSize
                 color: Theme.overlay2
             }
 
             Segmented {
+                visible: root.eap !== "tls"
                 options: [
                     { value: "mschapv2", label: "MSCHAPv2" },
                     { value: "pap", label: "PAP" },
@@ -389,20 +397,8 @@ Rectangle {
             Layout.fillWidth: true
             spacing: 8
 
-            Icon {
-                id: spinner
-
+            Spinner {
                 visible: root.busy
-                text: Icons.loading
-                color: Theme.accent
-
-                RotationAnimation on rotation {
-                    running: spinner.visible
-                    loops: Animation.Infinite
-                    from: 0
-                    to: 360
-                    duration: 900
-                }
             }
 
             StyledText {
@@ -418,12 +414,12 @@ Rectangle {
                 visible: !root.busy
             }
 
-            FormButton {
+            PillButton {
                 text: "Cancel"
                 onClicked: root.finished()
             }
 
-            FormButton {
+            PillButton {
                 visible: !root.busy
                 text: "Connect"
                 primary: true
