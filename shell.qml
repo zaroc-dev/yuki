@@ -16,13 +16,13 @@ ShellRoot {
     // Created before the wallpapers so it stacks below them even when niri
     // hasn't been told to move it into the overview backdrop yet.
     Variants {
-        model: Settings.d.wallpaperEnabled && Settings.d.overviewBackdrop ? Quickshell.screens : []
+        model: Settings.d.wallpaperEnabled && Settings.d.overviewBackdrop ? Quickshell.screens.filter(s => !Wallpapers.managedByRinka(s.name)) : []
 
         Backdrop {}
     }
 
     Variants {
-        model: Settings.d.wallpaperEnabled ? Quickshell.screens : []
+        model: Settings.d.wallpaperEnabled ? Quickshell.screens.filter(s => !Wallpapers.managedByRinka(s.name)) : []
 
         Wallpaper {}
     }

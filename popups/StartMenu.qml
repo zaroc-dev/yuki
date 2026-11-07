@@ -13,6 +13,9 @@ BarPopup {
 
     readonly property string screenName: target.QsWindow.window?.screen?.name ?? ""
     readonly property string wallpaper: Wallpapers.pathFor(screenName)
+    // Rinka's still has a generated name, and stepping would only change the
+    // hidden saved choice.
+    readonly property bool rinka: Wallpapers.managedByRinka(screenName)
     property date now: new Date()
 
     function launch(entry) {
@@ -556,7 +559,7 @@ BarPopup {
 
                 StyledText {
                     Layout.fillWidth: true
-                    text: root.wallpaper.split("/").pop().replace(/\.[^.]+$/, "").replace(/[_-]+/g, " ")
+                    text: root.rinka ? "Rinka" : root.wallpaper.split("/").pop().replace(/\.[^.]+$/, "").replace(/[_-]+/g, " ")
                     font.family: Theme.displayFont
                     font.pixelSize: 17
                     font.weight: Font.ExtraBold
@@ -572,12 +575,14 @@ BarPopup {
             }
 
             IconButton {
+                visible: !root.rinka
                 icon: Icons.chevronLeft
                 color: "white"
                 onClicked: Wallpapers.step(root.screenName, -1)
             }
 
             IconButton {
+                visible: !root.rinka
                 icon: Icons.chevronRight
                 color: "white"
                 onClicked: Wallpapers.step(root.screenName, 1)

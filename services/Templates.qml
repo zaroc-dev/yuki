@@ -73,6 +73,7 @@ overview {
 // The shell's blurred wallpaper behind workspaces in the overview.
 layer-rule {
     match namespace="^yuki-backdrop$"
+    match namespace="^rinka-backdrop$"
     place-within-backdrop true
 }
 `;

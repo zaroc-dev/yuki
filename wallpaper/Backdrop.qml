@@ -11,7 +11,7 @@ PanelWindow {
     id: root
 
     required property ShellScreen modelData
-    readonly property string path: Wallpapers.pathFor(modelData.name)
+    readonly property string path: Wallpapers.savedPathFor(modelData.name)
 
     screen: modelData
     anchors {

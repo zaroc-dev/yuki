@@ -31,6 +31,16 @@ Import direction: `config` ← `services` ← `components` ← `bar`/`popups`/`s
 `config` must not import `services` (cycles). That's why `Wallpapers` lives in
 `config/`: `Theme` needs the color-source wallpaper path.
 
+`config/Rinka.qml` watches the Linux host's `<socket stem>.wallpapers.json`.
+Only version 1 manifests whose PID matches a live v1 `hello` connection are
+used. `Wallpapers.pathFor` prefers that output's engine-rendered still;
+`shell.qml` excludes assigned outputs from Yuki's wallpaper/backdrop surfaces.
+The same path feeds the lock screen. Unassign, disconnect and host exit fall
+back to saved local wallpapers. `RINKA_SOCKET` overrides the default socket
+for isolated tests. A missing export is retried quietly every 5 seconds until
+the runtime directory and manifest exist; established hosts update by file
+events and disconnect signals.
+
 ## Bar & popups
 
 - `bar/Bar.qml` is a top-anchored `PanelWindow` per screen drawn as one
@@ -161,6 +171,15 @@ Theme.m3 has all Material roles (for templates); Theme.accent/onAccent.
 `material.mjs` maps neutral tonal ramps onto those keys at Catppuccin-like
 lightness steps and harmonizes the named hues toward the seed. tonal-spot
 output matches noctalia/matugen closely (verified: `#b3c5ff` vs `#b4c5ff`).
+
+Rinka seeds use the same worker, but live in `Wallpapers.rinkaSeed`, keyed by
+the still's unique path. They do not accumulate in settings. ColorExtractor
+reads Canvas pixels on image load in a 1×1 transparent overlay, created per
+extraction; it does not wait for painting on a covered background surface.
+While a new still is extracted, the previous Rinka seed (or the saved
+wallpaper's) stays, so edits don't flash the fallback palette.
+`Wallpapers.pathFor` is what an output shows; `savedPathFor` is Yuki's own
+choice, used by its surfaces, the wallpaper page and stepping.
 
 ## Windows & layers (niri namespaces)
 
