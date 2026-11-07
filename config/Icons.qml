@@ -148,6 +148,12 @@ Singleton {
     readonly property string plus: "\u{f0415}"
     readonly property string chevronDown: "\u{f0140}"
     readonly property string lock: "\u{f033e}"
+    readonly property string key: "\u{f0306}"
+    readonly property string pencil: "\u{f03eb}"
+    readonly property string fileImport: "\u{f0220}"
+    readonly property string tune: "\u{f062e}"
+    readonly property string ipNetwork: "\u{f0a60}"
+    readonly property string bluetoothSettings: "\u{f00b3}"
     readonly property var wifiStrength: ["\u{f092f}", "\u{f091f}", "\u{f0922}", "\u{f0925}", "\u{f0928}"]
 
     readonly property var battery: ["\u{f007a}", "\u{f007b}", "\u{f007c}", "\u{f007d}", "\u{f007e}",

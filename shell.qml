@@ -170,7 +170,7 @@ ShellRoot {
     IpcHandler {
         target: "settings"
 
-        // appearance | wallpaper | bar | notifications | start | about
+        // appearance | wallpaper | bar | network | bluetooth | notifications | start | system | about
         function open(page: string): void {
             Ui.openSettings(page);
         }

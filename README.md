@@ -26,9 +26,15 @@ clipboard history grow out of the middle of the bar.
   device battery, disconnect and forget buttons (forget asks for a second click).
   device battery, forget (right-click).
 - **Network:** Wi-Fi join form with password reveal and inline errors, enterprise
-  (802.1X: PEAP/TTLS, identity, domain, CA) and hidden networks ("Add network…"),
-  forget for saved networks. VPN on/off for Mullvad (its CLI) and NetworkManager
-  VPN/WireGuard profiles, with a shield on the bar icon while one is up.
+  (802.1X: PEAP/TTLS/TLS with a client certificate, identity, domain, CA) and hidden
+  networks ("Add network…"), forget for saved networks. VPN on/off for Mullvad (its
+  CLI) and NetworkManager VPN/WireGuard profiles, with a shield on the bar icon while
+  one is up. Settings → Network adds IP/gateway/DNS per device, saved Wi-Fi profiles
+  (auto-join, forget, also out of range), VPN import and removal, and a shortcut to
+  `nm-connection-editor` when it's installed.
+- **Bluetooth (settings):** adapter power, name, visibility and pairing; devices
+  grouped connected / paired / nearby with rename, trust, connect, pair and forget.
+  Scanning stops when the page closes.
 - **Clipboard:** history via cliphist (the shell runs the `wl-paste --watch` recorders),
   a searchable panel with image thumbnails, Enter copies, Del removes.
 - **Screenshots:** niri's own tools (region/screen/window from the start menu or IPC);
@@ -246,6 +252,17 @@ NetworkManager manages the tunnel without a terminal. Toggle off to disconnect,
 or to cancel a pending login. Session cookies are passed in memory and are not
 saved in the profile. Install the corresponding NetworkManager VPN plugin on
 the host (for NixOS, `networking.networkmanager.plugins`).
+
+Profiles that don't store their password (`password-flags=2`, the ones you'd
+connect with `nmcli --ask connection up`) ask for it in a field under the row
+when switched on; with a one-time code, type it right after the password. The
+password goes to nmcli on stdin and isn't kept. Started from IPC with nothing
+open, a notification links to Settings → Network.
+
+Settings → Network → VPN imports a WireGuard `.conf`, OpenVPN `.ovpn` or Cisco
+`.pcf` file (`nmcli connection import`). Imported profiles stay off and don't
+autoconnect until you switch them on. WireGuard profiles are named after the
+file, shortened to a valid interface name.
 
 ## Theming
 
