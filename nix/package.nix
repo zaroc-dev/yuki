@@ -82,6 +82,8 @@ stdenvNoCC.mkDerivation {
           cat > $out/libexec/yuki <<'EOF'
           #!${lib.getExe bash}
           dir=${lib.escapeShellArg configDir}
+          # A system-wide package can't know the home directory; expand ~ here.
+          case $dir in "~" | "~/"*) dir=$HOME''${dir#\~} ;; esac
           if [ ! -f "$dir/shell.qml" ]; then
             echo "yuki: no shell.qml in $dir, using the packaged copy" >&2
             dir=@out@/share/yuki

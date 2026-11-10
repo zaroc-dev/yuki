@@ -161,8 +161,21 @@ inputs.yuki.url = "github:zaroc-dev/yuki";
 | `packages.<system>.yuki` (default) | `yuki` = `qs -p <config>` with cliphist, wl-clipboard, brightnessctl, xdg-utils on PATH. `yuki ipc call …` talks to it. `.override { configDir = "/path"; }` runs a checkout instead of the store copy |
 | `packages.<system>.sddm-theme` | `.override { background = ./wall.jpg; settings = { accent = "#…"; }; }` |
 | `packages.<system>.plymouth-theme` | `.override { accent = …; base = …; surface = …; text = …; }` |
-| `homeManagerModules.default` | `programs.yuki = { enable; configDir; systemd.enable; gtk.enable; }` |
-| `nixosModules.default` | `programs.yuki = { sddm = { enable; background; }; plymouth.enable; palette = { … }; }` |
+| `homeModules.yuki` (also `default`) | `programs.yuki = { enable; configDir; systemd.enable; gtk.enable; }` |
+| `nixosModules.yuki` (also `default`) | `programs.yuki = { enable; configDir; systemd.enable; gtk.enable; sddm = { enable; background; }; plymouth.enable; palette = { … }; }` |
+| `overlays.default` | `pkgs.yuki`, `pkgs.yuki-sddm-theme`, `pkgs.yuki-plymouth-theme` |
+
+The flake is dendritic (flake-parts + import-tree): each file in `nix/modules`
+is a flake-parts module. The modules build the packages from the consumer's
+`pkgs`, so they also work in a flake that doesn't follow yuki's nixpkgs.
+`homeManagerModules.default` is the old name and still works.
+
+The NixOS module covers everything the home-manager one does, so
+home-manager is optional. With `enable` it installs the shell and fonts for
+every user, `systemd.enable` adds a user service, and `gtk.enable` creates
+`~/.config/gtk-{3,4}.0/gtk.css` through systemd-tmpfiles for users that don't
+have one yet (it never overwrites an existing file). `configDir` may start
+with `~`, which expands to each user's home when yuki starts.
 
 For hot reload, point `configDir` at a checkout (e.g. an out-of-store
 symlink): the shell then runs the live QML, and settings are shared with the
@@ -170,15 +183,17 @@ packaged build because the shell id is pinned (`//@ pragma ShellId yuki`).
 
 ```nix
 # home-manager
-imports = [ inputs.yuki.homeManagerModules.default ];
+imports = [ inputs.yuki.homeModules.yuki ];
 programs.yuki = {
   enable = true;
   configDir = "${config.home.homeDirectory}/source/shell";
 };
 
-# nixos
-imports = [ inputs.yuki.nixosModules.default ];
+# nixos (works without home-manager)
+imports = [ inputs.yuki.nixosModules.yuki ];
 programs.yuki = {
+  enable = true;
+  configDir = "~/source/shell";
   sddm = { enable = true; background = ./wallpapers/raiden.shogun.jpg; };
   plymouth.enable = true;
 };

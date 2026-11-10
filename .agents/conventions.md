@@ -52,8 +52,11 @@
 
 ## Nix
 
-- `nix/*.nix` are `callPackage`-style; modules take `self` first. Keep option
-  namespaces `programs.yuki` (HM and NixOS). Format with `nixfmt`.
+- `nix/*.nix` are `callPackage`-style derivations. Every file in `nix/modules`
+  is a flake-parts module (import-tree loads them all, so keep derivations out
+  of it). HM/NixOS modules `pkgs.callPackage` the derivations themselves rather
+  than reaching for `self.packages`, so they use the consumer's nixpkgs. Keep
+  option namespaces `programs.yuki` (HM and NixOS). Format with `nixfmt`.
 
 ## Git
 

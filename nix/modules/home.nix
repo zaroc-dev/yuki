@@ -1,0 +1,98 @@
+{ lib, ... }:
+let
+  module =
+    {
+      config,
+      lib,
+      pkgs,
+      ...
+    }:
+
+    let
+      cfg = config.programs.yuki;
+    in
+    {
+      options.programs.yuki = {
+        enable = lib.mkEnableOption "yuki, the Quickshell desktop shell";
+
+        configDir = lib.mkOption {
+          type = lib.types.nullOr lib.types.str;
+          default = null;
+          example = lib.literalExpression ''"''${config.home.homeDirectory}/source/shell"'';
+          description = ''
+            Run the QML straight from this directory (e.g. a git checkout) instead
+            of the store copy, which keeps Quickshell's hot reload. If the directory
+            has no shell.qml (e.g. a machine without the checkout), the store copy
+            is used. Settings live in ~/.local/state/quickshell/by-shell/yuki
+            either way.
+          '';
+        };
+
+        package = lib.mkOption {
+          type = lib.types.package;
+          default = pkgs.callPackage ../package.nix {
+            inherit (cfg) configDir;
+          };
+          defaultText = lib.literalExpression "pkgs.callPackage yuki/nix/package.nix { inherit (cfg) configDir; }";
+          description = "The wrapped shell (`yuki`, `yuki ipc call …`).";
+        };
+
+        systemd.enable = lib.mkEnableOption ''
+          a systemd user service bound to graphical-session.target (instead of
+          spawn-at-startup in niri)
+        '';
+
+        gtk.enable = lib.mkOption {
+          type = lib.types.bool;
+          default = true;
+          description = "Point GTK 3/4 gtk.css at the shell's generated colors.";
+        };
+      };
+
+      config = lib.mkIf cfg.enable {
+        home.packages = [
+          cfg.package
+          pkgs.inter
+          pkgs.nerd-fonts.jetbrains-mono
+        ];
+
+        fonts.fontconfig.enable = lib.mkDefault true;
+
+        xdg.configFile = lib.mkIf cfg.gtk.enable {
+          "gtk-3.0/gtk.css".text = ''@import url("file://${config.xdg.stateHome}/yuki/theme/gtk3.css");'';
+          "gtk-4.0/gtk.css".text = ''@import url("file://${config.xdg.stateHome}/yuki/theme/gtk4.css");'';
+        };
+
+        systemd.user.services.yuki = lib.mkIf cfg.systemd.enable {
+          Unit = {
+            Description = "yuki desktop shell";
+            PartOf = [ "graphical-session.target" ];
+            After = [ "graphical-session.target" ];
+          };
+          Service = {
+            ExecStart = lib.getExe cfg.package;
+            Restart = "on-failure";
+            RestartSec = 2;
+          };
+          Install.WantedBy = [ "graphical-session.target" ];
+        };
+      };
+    };
+in
+{
+  # flake-parts declares `flake.nixosModules` but not `homeModules`.
+  options.flake.homeModules = lib.mkOption {
+    type = lib.types.lazyAttrsOf lib.types.raw;
+    default = { };
+    description = "home-manager modules exposed by this flake.";
+  };
+
+  config.flake = {
+    homeModules = {
+      yuki = module;
+      default = module;
+    };
+    # The pre-flake-parts name, kept so existing consumers keep evaluating.
+    homeManagerModules.default = module;
+  };
+}
