@@ -164,6 +164,7 @@ inputs.yuki.url = "github:zaroc-dev/yuki";
 | `homeModules.yuki` (also `default`) | `programs.yuki = { enable; configDir; systemd.enable; gtk.enable; }` |
 | `nixosModules.yuki` (also `default`) | `programs.yuki = { enable; configDir; systemd.enable; gtk.enable; sddm = { enable; background; }; plymouth.enable; palette = { … }; }` |
 | `overlays.default` | `pkgs.yuki`, `pkgs.yuki-sddm-theme`, `pkgs.yuki-plymouth-theme` |
+| `wrapperModules.yuki` (also `default`) | [nix-wrapper-modules](https://github.com/nix-community/nix-wrapper-modules) module: `{ checkout; }` plus everything its quickshell module takes |
 
 The flake is dendritic (flake-parts + import-tree): each file in `nix/modules`
 is a flake-parts module. The modules build the packages from the consumer's
@@ -198,6 +199,32 @@ programs.yuki = {
   plymouth.enable = true;
 };
 ```
+
+### nix-wrapper-modules
+
+`wrapperModules.yuki` builds on nix-wrapper-modules' quickshell module: it
+sets `binName = "yuki"`, `configDir` (the packaged QML) and `runtimePkgs`
+(the tools the QML runs). `checkout` runs a checkout instead, for hot reload;
+unlike the package's `configDir` there is no fallback if it is missing. The
+package exposes the same pieces as `yuki.qml` and `yuki.runtimeInputs`.
+
+```nix
+perSystem =
+  { pkgs, ... }:
+  {
+    packages.yuki = inputs.wrappers.lib.wrapPackage [
+      inputs.yuki.wrapperModules.yuki
+      {
+        inherit pkgs;
+        # checkout = "/home/me/source/yuki";
+      }
+    ];
+  };
+```
+
+The wrapper is only the shell. The SDDM and Plymouth themes are system
+config, so take them from `nixosModules.yuki` with `enable` left off (only
+`sddm`/`plymouth`/`palette` set), or install `packages.sddm-theme` yourself.
 
 ## Running
 

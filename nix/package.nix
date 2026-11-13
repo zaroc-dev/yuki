@@ -21,7 +21,8 @@
 }:
 
 let
-  runtimePath = lib.makeBinPath [
+  # Tools the QML runs (Process, execDetached).
+  runtimeInputs = [
     bash
     coreutils
     dbus
@@ -35,6 +36,7 @@ let
     networkmanager
     systemd
   ];
+  runtimePath = lib.makeBinPath runtimeInputs;
 
   src = lib.fileset.toSource {
     root = ../.;
@@ -98,6 +100,13 @@ stdenvNoCC.mkDerivation {
 
     runHook postInstall
   '';
+
+  # For wrappers that run quickshell themselves (wrapperModules.yuki):
+  # the QML directory and the tools it expects on PATH.
+  passthru = {
+    qml = src;
+    inherit runtimeInputs;
+  };
 
   meta = {
     license = lib.licenses.asl20;

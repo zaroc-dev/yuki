@@ -56,7 +56,10 @@
   is a flake-parts module (import-tree loads them all, so keep derivations out
   of it). HM/NixOS modules `pkgs.callPackage` the derivations themselves rather
   than reaching for `self.packages`, so they use the consumer's nixpkgs. Keep
-  option namespaces `programs.yuki` (HM and NixOS). Format with `nixfmt`.
+  option namespaces `programs.yuki` (HM and NixOS). `wrapperModules.yuki`
+  reads `passthru.qml`/`passthru.runtimeInputs` from the package, so a new
+  runtime tool goes into `runtimeInputs` in `nix/package.nix` only. Format
+  with `nixfmt`.
 
 ## Git
 
