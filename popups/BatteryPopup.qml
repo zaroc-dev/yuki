@@ -88,7 +88,14 @@ BarPopup {
         }
     }
 
-    ProfilePicker {
+    // Reading PowerProfiles blocks until power-profiles-daemon is up (it's
+    // ordered after multi-user.target, often 30 s into boot). The popup exists
+    // in every bar from startup, so only touch it when opened.
+    Loader {
         Layout.alignment: Qt.AlignHCenter
+        active: root.visible
+        asynchronous: true
+
+        sourceComponent: ProfilePicker {}
     }
 }
