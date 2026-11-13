@@ -24,7 +24,8 @@ wallpaper/       Wallpaper, Backdrop (overview), ColorExtractor (seed color)
 lib/             material.mjs (palette from seed), colorworker.mjs, mcu/ (vendored)
 pam/             password.conf (pam_unix) for the lock screen
 extras/          sddm/yuki (SDDM theme), plymouth (script theme + image generator)
-nix/             package, sddm-theme, plymouth-theme, home-module, nixos-module
+nix/             package, sddm-theme, plymouth-theme (callPackage)
+nix/modules/     flake-parts modules (import-tree): systems, packages, dev, home, nixos, wrapper
 ```
 
 Import direction: `config` ← `services` ← `components` ← `bar`/`popups`/`settings`/…

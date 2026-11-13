@@ -21,7 +21,8 @@
 }:
 
 let
-  runtimePath = lib.makeBinPath [
+  # Tools the QML runs (Process, execDetached).
+  runtimeInputs = [
     bash
     coreutils
     dbus
@@ -35,6 +36,7 @@ let
     networkmanager
     systemd
   ];
+  runtimePath = lib.makeBinPath runtimeInputs;
 
   src = lib.fileset.toSource {
     root = ../.;
@@ -82,6 +84,8 @@ stdenvNoCC.mkDerivation {
           cat > $out/libexec/yuki <<'EOF'
           #!${lib.getExe bash}
           dir=${lib.escapeShellArg configDir}
+          # A system-wide package can't know the home directory; expand ~ here.
+          case $dir in "~" | "~/"*) dir=$HOME''${dir#\~} ;; esac
           if [ ! -f "$dir/shell.qml" ]; then
             echo "yuki: no shell.qml in $dir, using the packaged copy" >&2
             dir=@out@/share/yuki
@@ -96,6 +100,13 @@ stdenvNoCC.mkDerivation {
 
     runHook postInstall
   '';
+
+  # For wrappers that run quickshell themselves (wrapperModules.yuki):
+  # the QML directory and the tools it expects on PATH.
+  passthru = {
+    qml = src;
+    inherit runtimeInputs;
+  };
 
   meta = {
     license = lib.licenses.asl20;
