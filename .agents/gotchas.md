@@ -107,6 +107,12 @@ elsewhere.
   it was set, so a blur region on a scale-animated item ends short of it. Bind
   `x`/`y`/`width`/`height` from the scale instead (see `popups/Osd.qml`). Blur
   can't fade either: drop the region while fading out, or it lingers as a ghost.
+- **Reading `PowerProfiles` blocks the GUI thread** until power-profiles-daemon
+  answers. Its unit is `After=multi-user.target`, which slow system units
+  (e.g. the NVIDIA CDI generator) hold back ~30 s into boot, so one binding
+  during startup kept the whole shell from loading for 10–18 s after login.
+  Only touch it behind a `Loader { active: root.visible }` (PowerMenu,
+  BatteryPopup); popups exist in every bar from startup even when hidden.
 - **ShellId**: without `//@ pragma ShellId yuki` the state dir is derived from
   the config *path*: store builds would get empty settings. Pragmas only apply
   at process start (restart, not reload). The first reload after changing it
