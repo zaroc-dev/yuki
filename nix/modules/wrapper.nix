@@ -40,6 +40,8 @@ let
           if config.checkout == null then yuki.qml else wlib.mkOutOfStoreSymlink pkgs config.checkout
         );
         runtimePkgs = yuki.runtimeInputs;
+        # Inter + JetBrainsMono Nerd Font without installing them system-wide.
+        envDefault.FONTCONFIG_FILE = "${yuki.fontsConf}";
         meta.platforms = lib.platforms.linux;
       };
     };

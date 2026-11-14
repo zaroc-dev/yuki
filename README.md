@@ -158,11 +158,11 @@ inputs.yuki.url = "github:zaroc-dev/yuki";
 
 | Output | What |
 | --- | --- |
-| `packages.<system>.yuki` (default) | `yuki` = `qs -p <config>` with cliphist, wl-clipboard, brightnessctl, xdg-utils on PATH. `yuki ipc call …` talks to it. `.override { configDir = "/path"; }` runs a checkout instead of the store copy |
+| `packages.<system>.yuki` (default) | `yuki` = `qs -p <config>` with cliphist, wl-clipboard, brightnessctl, xdg-utils, nmcli on PATH and its fonts bundled. `yuki ipc call …` talks to it. `.override { configDir = "/path"; }` runs a checkout instead of the store copy |
 | `packages.<system>.sddm-theme` | `.override { background = ./wall.jpg; settings = { accent = "#…"; }; }` |
 | `packages.<system>.plymouth-theme` | `.override { accent = …; base = …; surface = …; text = …; }` |
 | `homeModules.yuki` (also `default`) | `programs.yuki = { enable; configDir; systemd.enable; gtk.enable; }` |
-| `nixosModules.yuki` (also `default`) | `programs.yuki = { enable; configDir; systemd.enable; gtk.enable; sddm = { enable; background; }; plymouth.enable; palette = { … }; }` |
+| `nixosModules.yuki` (also `default`) | `programs.yuki = { enable; configDir; systemd.enable; gtk.enable; services.enable; sddm = { enable; background; }; plymouth.enable; palette = { … }; }` |
 | `overlays.default` | `pkgs.yuki`, `pkgs.yuki-sddm-theme`, `pkgs.yuki-plymouth-theme` |
 | `wrapperModules.yuki` (also `default`) | [nix-wrapper-modules](https://github.com/nix-community/nix-wrapper-modules) module: `{ checkout; }` plus everything its quickshell module takes |
 
@@ -173,7 +173,8 @@ is a flake-parts module. The modules build the packages from the consumer's
 
 The NixOS module covers everything the home-manager one does, so
 home-manager is optional. With `enable` it installs the shell and fonts for
-every user, `systemd.enable` adds a user service, and `gtk.enable` creates
+every user and enables the system services it uses (`services.enable`, see
+[Running](#running)), `systemd.enable` adds a user service, and `gtk.enable` creates
 `~/.config/gtk-{3,4}.0/gtk.css` through systemd-tmpfiles for users that don't
 have one yet (it never overwrites an existing file). `configDir` may start
 with `~`, which expands to each user's home when yuki starts.
@@ -222,15 +223,40 @@ perSystem =
   };
 ```
 
-The wrapper is only the shell. The SDDM and Plymouth themes are system
-config, so take them from `nixosModules.yuki` with `enable` left off (only
-`sddm`/`plymouth`/`palette` set), or install `packages.sddm-theme` yourself.
+The wrapper is only the shell (fonts included). System services, and the
+SDDM and Plymouth themes, are system config, so take them from
+`nixosModules.yuki` with `enable` left off (`services.enable`,
+`sddm`/`plymouth`/`palette`), or set them up yourself.
 
 ## Running
 
-Needs niri, NetworkManager, PipeWire, UPower, BlueZ, power-profiles-daemon,
-and the fonts `Inter` and `JetBrainsMono Nerd Font` (the home-manager module
-installs the fonts).
+The fonts (`Inter`, `JetBrainsMono Nerd Font`) and the commands the shell runs
+come with the package. The compositor and the system services don't:
+
+| Needs | For | Without it | `services.enable` |
+| --- | --- | --- | --- |
+| niri | workspaces, windows, overview, screenshots | no shell | no |
+| PipeWire | volume, mic, audio panel, OSD | no audio controls | yes |
+| UPower | battery widget and popup | no battery (fine on a desktop) | yes |
+| power-profiles-daemon | profile picker (power menu, battery, settings) | picker does nothing (hidden in the power menu) | yes, unless TLP/auto-cpufreq |
+| BlueZ | Bluetooth widget, panel and settings page | Bluetooth hidden | yes |
+| polkit | authentication dialogs | no prompts | yes |
+| NetworkManager | network panel, Wi-Fi, VPN, settings page | no networks listed | no (host choice) |
+
+On NixOS, `programs.yuki.services.enable` (from `nixosModules.yuki`) turns on
+the ones marked yes, each as a `mkDefault`. It follows `programs.yuki.enable`
+and can be set on its own when the shell comes from `wrapperModules.yuki` or
+home-manager, which can't enable system services:
+
+```nix
+imports = [ inputs.yuki.nixosModules.yuki ];
+programs.yuki.services.enable = true; # enable stays off: the wrapper is the shell
+networking.networkmanager.enable = true;
+```
+
+Optional: `mullvad` (VPN toggle), `nm-connection-editor` (shortcut in
+Settings → Network), the NetworkManager VPN plugins for imported profiles,
+kitty (terminal apps from the launcher).
 
 ```sh
 nix run github:zaroc-dev/yuki                       # try it

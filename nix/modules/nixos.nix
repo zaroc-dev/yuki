@@ -86,6 +86,21 @@ let
 
         plymouth.enable = lib.mkEnableOption "the Plymouth boot splash matching yuki";
 
+        services.enable = lib.mkOption {
+          type = lib.types.bool;
+          default = cfg.enable;
+          defaultText = lib.literalExpression "config.programs.yuki.enable";
+          example = true;
+          description = ''
+            Enable the system services the shell talks to: UPower (battery),
+            power-profiles-daemon (profile picker; skipped with TLP or
+            auto-cpufreq), PipeWire (volume, OSD), BlueZ and polkit. Each is a
+            `mkDefault`, so a host can still turn one off. Works without
+            `enable`, e.g. when the shell comes from `wrapperModules.yuki`.
+            NetworkManager is left to the host (the network panel needs it).
+          '';
+        };
+
         palette = lib.mkOption {
           type = palette;
           default = { };
@@ -122,6 +137,17 @@ let
               RestartSec = 2;
             };
           };
+        })
+
+        (lib.mkIf cfg.services.enable {
+          services.upower.enable = lib.mkDefault true;
+          # Both conflict with power-profiles-daemon (nixpkgs asserts on TLP).
+          services.power-profiles-daemon.enable = lib.mkDefault (
+            !config.services.tlp.enable && !config.services.auto-cpufreq.enable
+          );
+          services.pipewire.enable = lib.mkDefault true;
+          hardware.bluetooth.enable = lib.mkDefault true;
+          security.polkit.enable = lib.mkDefault true;
         })
 
         (lib.mkIf cfg.sddm.enable {
