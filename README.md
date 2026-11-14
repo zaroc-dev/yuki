@@ -92,7 +92,9 @@ with an empty search, apps are sorted by how often you launch them.
 
 The shell draws the wallpaper itself, one per output, with a fade-and-settle
 transition. Outputs without their own wallpaper use the default (or the first
-image in the folder, `~/wallpapers` by default).
+image in the folder, `~/wallpapers` by default). Packagers can set a default
+with the Nix `wallpaper` option (the `YUKI_WALLPAPER` environment variable);
+a wallpaper picked in the shell is saved and takes precedence over it.
 
 Turn off **Manage wallpapers** in Settings → Wallpaper to let another app manage
 the compositor background. This removes yuki's desktop wallpapers and overview
@@ -158,13 +160,13 @@ inputs.yuki.url = "github:zaroc-dev/yuki";
 
 | Output | What |
 | --- | --- |
-| `packages.<system>.yuki` (default) | `yuki` = `qs -p <config>` with cliphist, wl-clipboard, brightnessctl, xdg-utils, nmcli on PATH and its fonts bundled. `yuki ipc call …` talks to it. `.override { configDir = "/path"; }` runs a checkout instead of the store copy |
+| `packages.<system>.yuki` (default) | `yuki` = `qs -p <config>` with cliphist, wl-clipboard, brightnessctl, xdg-utils, nmcli on PATH and its fonts bundled. `yuki ipc call …` talks to it. `.override { configDir = "/path"; }` runs a checkout instead of the store copy, `.override { wallpaper = ./wall.jpg; }` sets the default wallpaper |
 | `packages.<system>.sddm-theme` | `.override { background = ./wall.jpg; settings = { accent = "#…"; }; }` |
 | `packages.<system>.plymouth-theme` | `.override { accent = …; base = …; surface = …; text = …; }` |
-| `homeModules.yuki` (also `default`) | `programs.yuki = { enable; configDir; systemd.enable; gtk.enable; }` |
-| `nixosModules.yuki` (also `default`) | `programs.yuki = { enable; configDir; systemd.enable; gtk.enable; services.enable; sddm = { enable; background; }; plymouth.enable; palette = { … }; }` |
+| `homeModules.yuki` (also `default`) | `programs.yuki = { enable; configDir; wallpaper; systemd.enable; gtk.enable; }` |
+| `nixosModules.yuki` (also `default`) | `programs.yuki = { enable; configDir; wallpaper; systemd.enable; gtk.enable; services.enable; sddm = { enable; background; }; plymouth.enable; palette = { … }; }` |
 | `overlays.default` | `pkgs.yuki`, `pkgs.yuki-sddm-theme`, `pkgs.yuki-plymouth-theme` |
-| `wrapperModules.yuki` (also `default`) | [nix-wrapper-modules](https://github.com/nix-community/nix-wrapper-modules) module: `{ checkout; }` plus everything its quickshell module takes |
+| `wrapperModules.yuki` (also `default`) | [nix-wrapper-modules](https://github.com/nix-community/nix-wrapper-modules) module: `{ checkout; wallpaper; }` plus everything its quickshell module takes |
 
 The flake is dendritic (flake-parts + import-tree): each file in `nix/modules`
 is a flake-parts module. The modules build the packages from the consumer's
@@ -206,7 +208,8 @@ programs.yuki = {
 `wrapperModules.yuki` builds on nix-wrapper-modules' quickshell module: it
 sets `binName = "yuki"`, `configDir` (the packaged QML) and `runtimePkgs`
 (the tools the QML runs). `checkout` runs a checkout instead, for hot reload;
-unlike the package's `configDir` there is no fallback if it is missing. The
+unlike the package's `configDir` there is no fallback if it is missing.
+`wallpaper` sets the default wallpaper (until one is picked in the shell). The
 package exposes the same pieces as `yuki.qml` and `yuki.runtimeInputs`.
 
 ```nix
@@ -218,6 +221,7 @@ perSystem =
       {
         inherit pkgs;
         # checkout = "/home/me/source/yuki";
+        # wallpaper = ./wallpapers/main.png;
       }
     ];
   };

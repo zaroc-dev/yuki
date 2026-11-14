@@ -11,7 +11,9 @@ Singleton {
 
     readonly property string dir: Settings.expand(Settings.d.wallpaperDir)
     property var files: []
-    readonly property string fallback: Settings.expand(Settings.d.wallpaperDefault) || (files[0] ?? "")
+    // YUKI_WALLPAPER is the packager's default (Nix `wallpaper` option); a
+    // wallpaper picked in the shell is saved as wallpaperDefault and wins.
+    readonly property string fallback: Settings.expand(Settings.d.wallpaperDefault) || Settings.expand(Quickshell.env("YUKI_WALLPAPER") ?? "") || (files[0] ?? "")
 
     // Output whose wallpaper the colors are extracted from.
     // Defaults to the output at the layout origin (usually the primary one).

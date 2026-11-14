@@ -21,6 +21,8 @@
   # Run the QML from this directory instead of the store copy, e.g. a git
   # checkout, to keep hot reload. Settings are shared either way (ShellId).
   configDir ? null,
+  # Wallpaper shown until one is picked in the shell (YUKI_WALLPAPER).
+  wallpaper ? null,
 }:
 
 let
@@ -59,8 +61,12 @@ let
     }  <cachedir prefix="xdg">fontconfig</cachedir>
     </fontconfig>
   '';
-  # --set-default: a FONTCONFIG_FILE the user already set wins.
-  wrapperFlags = "--prefix PATH : ${runtimePath} --set-default FONTCONFIG_FILE ${fontsConf}";
+  # --set-default: a FONTCONFIG_FILE / YUKI_WALLPAPER the user already set wins.
+  wrapperFlags =
+    "--prefix PATH : ${runtimePath} --set-default FONTCONFIG_FILE ${fontsConf}"
+    + lib.optionalString (
+      wallpaper != null
+    ) " --set-default YUKI_WALLPAPER ${lib.escapeShellArg "${wallpaper}"}";
 
   src = lib.fileset.toSource {
     root = ../.;
