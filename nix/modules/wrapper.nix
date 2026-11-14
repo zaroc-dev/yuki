@@ -33,6 +33,17 @@ let
         '';
       };
 
+      options.wallpaper = lib.mkOption {
+        type = lib.types.nullOr (lib.types.either lib.types.path lib.types.str);
+        default = null;
+        example = lib.literalExpression "./wallpapers/main.png";
+        description = ''
+          Wallpaper shown until one is picked in the shell (sets
+          `YUKI_WALLPAPER`). A choice made in the shell is saved and takes
+          precedence; a leading `~` expands to the home directory.
+        '';
+      };
+
       config = {
         # `yuki ipc call …` (keybinds, scripts) talks to the running shell.
         binName = lib.mkDefault "yuki";
@@ -41,7 +52,10 @@ let
         );
         runtimePkgs = yuki.runtimeInputs;
         # Inter + JetBrainsMono Nerd Font without installing them system-wide.
-        envDefault.FONTCONFIG_FILE = "${yuki.fontsConf}";
+        envDefault = {
+          FONTCONFIG_FILE = "${yuki.fontsConf}";
+        }
+        // lib.optionalAttrs (config.wallpaper != null) { YUKI_WALLPAPER = "${config.wallpaper}"; };
         meta.platforms = lib.platforms.linux;
       };
     };

@@ -28,12 +28,21 @@ let
           '';
         };
 
+        wallpaper = lib.mkOption {
+          type = lib.types.nullOr (lib.types.either lib.types.path lib.types.str);
+          default = null;
+          example = lib.literalExpression "./wallpapers/main.png";
+          description = ''
+            Wallpaper shown until one is picked in the shell (sets
+            `YUKI_WALLPAPER`). A choice made in the shell is saved and takes
+            precedence; a leading `~` expands to the home directory.
+          '';
+        };
+
         package = lib.mkOption {
           type = lib.types.package;
-          default = pkgs.callPackage ../package.nix {
-            inherit (cfg) configDir;
-          };
-          defaultText = lib.literalExpression "pkgs.callPackage yuki/nix/package.nix { inherit (cfg) configDir; }";
+          default = pkgs.callPackage ../package.nix { inherit (cfg) configDir wallpaper; };
+          defaultText = lib.literalExpression "pkgs.callPackage yuki/nix/package.nix { inherit (cfg) configDir wallpaper; }";
           description = "The wrapped shell (`yuki`, `yuki ipc call …`).";
         };
 
