@@ -314,13 +314,15 @@ Rectangle {
                             font.weight: Font.DemiBold
                         }
 
-                        Image {
+                        // Animated GIFs play (the mask below re-renders each
+                        // frame); stills load like a plain Image.
+                        AnimatedImage {
                             id: avatar
 
                             anchors.fill: parent
                             source: root.user?.icon ?? ""
                             fillMode: Image.PreserveAspectCrop
-                            sourceSize: Qt.size(196, 196)
+                            mipmap: true
                             visible: false
                         }
 
