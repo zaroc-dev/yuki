@@ -133,9 +133,14 @@ and `unlock-session` lock and unlock it too.
 
 The lock screen is a real `ext-session-lock`. Each output's wallpaper blurs in
 when it locks and back out on unlock. If the shell crashes while locked, it locks
-again as soon as it restarts. It shows a clock, your avatar (`~/.face.icon`), and a password
+again as soon as it restarts. It shows a clock, your avatar, and a password
 field authenticated through PAM (`pam/password.conf`, plain `pam_unix`). Also:
 now-playing controls, the niri keyboard layout, and suspend/restart/shut down.
+
+The avatar (lock screen, start menu, dashboard, polkit) is the picture
+AccountsService has for you, the one SDDM and GNOME/KDE settings show, and it
+updates when you change it there. Without AccountsService it falls back to
+`~/.face.icon`, then `~/.face`, then your initial. Animated GIFs play.
 
 `yuki ipc call lock preview` shows the same UI *without* locking (Esc leaves).
 Use it to tweak the design safely.
