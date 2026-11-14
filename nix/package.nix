@@ -15,6 +15,9 @@
   openconnect,
   networkmanager,
   systemd,
+  writeText,
+  inter,
+  nerd-fonts,
   # Run the QML from this directory instead of the store copy, e.g. a git
   # checkout, to keep hot reload. Settings are shared either way (ShellId).
   configDir ? null,
@@ -37,6 +40,27 @@ let
     systemd
   ];
   runtimePath = lib.makeBinPath runtimeInputs;
+
+  # The fonts the QML names (Theme.font, Icon), so the shell renders without
+  # anything installed system-wide. Includes the system config first, so user
+  # and system fonts (emoji, CJK in notifications) keep working. Apps the
+  # shell launches inherit it; they only gain these two families.
+  fonts = [
+    inter
+    nerd-fonts.jetbrains-mono
+  ];
+  fontsConf = writeText "yuki-fonts.conf" ''
+    <?xml version="1.0"?>
+    <!DOCTYPE fontconfig SYSTEM "urn:fontconfig:fonts.dtd">
+    <fontconfig>
+      <include ignore_missing="yes">/etc/fonts/fonts.conf</include>
+    ${
+      lib.concatMapStrings (f: "  <dir>${f}/share/fonts</dir>\n") fonts
+    }  <cachedir prefix="xdg">fontconfig</cachedir>
+    </fontconfig>
+  '';
+  # --set-default: a FONTCONFIG_FILE the user already set wins.
+  wrapperFlags = "--prefix PATH : ${runtimePath} --set-default FONTCONFIG_FILE ${fontsConf}";
 
   src = lib.fileset.toSource {
     root = ../.;
@@ -74,7 +98,7 @@ stdenvNoCC.mkDerivation {
           # `yuki` starts it; `yuki ipc call <target> <fn>` talks to it.
           makeWrapper ${lib.getExe' quickshell "qs"} $out/bin/yuki \
             --add-flags "-p $out/share/yuki" \
-            --prefix PATH : ${runtimePath}
+            ${wrapperFlags}
         ''
       else
         ''
@@ -94,7 +118,7 @@ stdenvNoCC.mkDerivation {
           EOF
           substituteInPlace $out/libexec/yuki --replace-fail @out@ $out
           chmod +x $out/libexec/yuki
-          makeWrapper $out/libexec/yuki $out/bin/yuki --prefix PATH : ${runtimePath}
+          makeWrapper $out/libexec/yuki $out/bin/yuki ${wrapperFlags}
         ''
     }
 
@@ -102,10 +126,10 @@ stdenvNoCC.mkDerivation {
   '';
 
   # For wrappers that run quickshell themselves (wrapperModules.yuki):
-  # the QML directory and the tools it expects on PATH.
+  # the QML directory, the tools it expects on PATH and its fontconfig file.
   passthru = {
     qml = src;
-    inherit runtimeInputs;
+    inherit runtimeInputs fonts fontsConf;
   };
 
   meta = {
