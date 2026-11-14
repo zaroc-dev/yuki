@@ -7,7 +7,7 @@ shell.qml        root ShellRoot: Backdrop/Wallpaper per screen, ColorExtractor, 
                  screen, NotificationToasts, Launcher, LockScreen, SettingsWindow,
                  ClipboardPanel, Osd, all IpcHandlers; touches lazy singletons
 config/          Settings (persisted JSON), Theme (palette), Wallpapers, Icons   ← no deps on services
-services/        singletons: Niri, Apps, Audio, Media, Net, Vpn, Bt, Notifs, Lock, Power, Ui,
+services/        singletons: Niri, Accounts, Apps, Audio, Media, Net, Vpn, Bt, Notifs, Lock, Power, Ui,
                  Templates, Clipboard, Screenshots, Osd, Brightness, Idle
 components/      reusable UI: Surface, SurfaceRegion, BarPopup, DropSheet, BarButton,
                  PanelHeader, SectionLabel, IconButton, Icon, StyledText,
